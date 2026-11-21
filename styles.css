@@ -86,3 +86,30 @@ input:focus,select:focus,textarea:focus{outline:2px solid #a65c3b55;border-color
  .cart-items{padding:10px 0}
  .drawer-foot{position:sticky;bottom:0}
 }
+
+/* Focused checkout: one task per screen, no cart/checkout overlap */
+.checkout-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0 12px}
+.checkout-title h3{margin:0;font-size:20px}
+.checkout-title small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.back-to-cart{border:0;background:var(--cream);color:var(--accent);border-radius:7px;padding:8px 11px;font-size:12px;font-weight:800;white-space:nowrap}
+.checkout-summary{background:#fffdf9;border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin:14px 0}
+.checkout-summary>div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:12px;color:var(--muted)}
+.checkout-summary .summary-total{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;color:var(--ink);font-weight:800;font-size:15px}
+.drawer.checkout-mode .drawer-head{margin-bottom:10px}
+.drawer.checkout-mode .checkout{display:block!important;flex:1;min-height:0;max-height:none;overflow-y:auto;border-top:0;margin:0;padding:0 0 12px}
+.drawer.checkout-mode .checkout form{min-height:100%;display:flex;flex-direction:column}
+.drawer.checkout-mode #checkoutStepOne,.drawer.checkout-mode #checkoutStepTwo{display:flex;flex-direction:column;flex:1}
+.drawer.checkout-mode .checkout-progress{margin:8px 0 18px}
+.drawer.checkout-mode .checkout label{margin:8px 0 12px}
+.drawer.checkout-mode .checkout-actions{margin-top:auto;padding:12px 0 4px;background:var(--paper)}
+.drawer.checkout-mode .checkout-actions button{min-height:46px}
+.drawer.checkout-mode #nextCheckoutStep{margin-top:auto;min-height:48px}
+.drawer.checkout-mode #drawerFoot,.drawer.checkout-mode #cartItems,.drawer.checkout-mode #continueShopping{display:none!important}
+@media(max-width:650px){
+ .drawer.checkout-mode{height:min(88dvh,780px)}
+ .drawer.checkout-mode .drawer-head{position:sticky;top:0}
+ .drawer.checkout-mode .checkout{max-height:none}
+ .checkout-title h3{font-size:18px}
+ .back-to-cart{padding:7px 9px}
+ .checkout-summary{margin:10px 0}
+}
