@@ -15,3 +15,9 @@
 .chart-detail{margin:8px 0 0;padding:9px 12px;border-radius:9px;background:#f6efe6;color:#74543d;text-align:center;font-size:12px;font-weight:700}
 .chart-detail[hidden]{display:none}
 @media(max-width:520px){.chart-wrap{height:145px}}
+
+.metric-link{display:block;color:inherit;text-decoration:none;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease}
+.metric-link:hover,.metric-link:focus-visible{transform:translateY(-2px);box-shadow:0 7px 18px #5a3d2418;outline:2px solid #b68b69;outline-offset:2px}
+.recent-order-row{cursor:pointer;transition:background .15s ease}
+.recent-order-row:hover,.recent-order-row:focus-visible{background:#f8f2ea;outline:none}
+.recent-order-row:focus-visible{box-shadow:inset 0 0 0 2px #b68b69}
