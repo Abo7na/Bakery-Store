@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة المخزون | مخبوزات الشام</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/admin/layout.css">
+<link rel="stylesheet" href="../css/admin/inventory.css">
+</head>
+<body class="admin-body">
+<div id="adminSidebar"></div>
+<main class="admin-main inventory-main">
+<header class="admin-page-head"><div><span class="eyebrow">إدارة المنتجات والكميات</span><h1>المخزون</h1><p>تابع الكميات المتوفرة وسجّل التوريد والتعديلات وحركة المنتجات.</p></div></header>
+<section class="inventory-stats">
+<article><span>عدد المنتجات</span><b id="inventoryProducts">0</b></article>
+<article><span>إجمالي القطع المتوفرة</span><b id="inventoryUnits">0</b></article>
+<article><span>منتجات منخفضة المخزون</span><b id="inventoryLow">0</b></article>
+<article><span>منتجات نافدة</span><b id="inventoryOut">0</b></article>
+</section>
+<section class="admin-card inventory-adjust-card">
+<h2>تسجيل حركة مخزون</h2>
+<p class="inventory-hint">استخدم «توريد» عند وصول بضاعة جديدة، أو «سحب» للنقص اليدوي، أو «تسوية» لتعيين الكمية الصحيحة.</p>
+<form id="inventoryForm" class="formgrid">
+<label>المنتج<select name="productId" id="inventoryProduct" required></select></label>
+<label>نوع الحركة<select name="action" required><option value="add">توريد كمية</option><option value="remove">سحب كمية</option><option value="set">تسوية الكمية الحالية</option></select></label>
+<label>الكمية<input name="quantity" type="number" min="0" step="1" required placeholder="أدخل الكمية"></label>
+<label>سبب الحركة<input name="reason" maxlength="120" placeholder="مثال: توريد صباحي"></label>
+<div class="wide form-actions"><button class="primary" type="submit">حفظ حركة المخزون</button></div>
+</form>
+</section>
+<section class="admin-card">
+<div class="inventory-section-head"><div><h2>كميات المنتجات</h2><small>يتم تحديث الكميات تلقائياً بعد البيع وقبول الطلبات</small></div><input id="inventorySearch" type="search" placeholder="ابحث عن منتج..."></div>
+<div id="inventoryProductsList" class="inventory-product-list"></div>
+</section>
+<section class="admin-card">
+<div class="inventory-section-head"><div><h2>سجل حركة المخزون</h2><small id="movementCount">0 حركة</small></div><select id="movementFilter"><option value="all">كل الحركات</option><option value="add">توريد</option><option value="remove">سحب</option><option value="sale">بيع مباشر</option><option value="order">طلب إلكتروني</option><option value="adjustment">تسوية / تعديل</option></select></div>
+<div id="inventoryMovements" class="inventory-movements"></div>
+</section>
+<p class="admin-notice">المخزون الحالي خاص بالمنتجات الجاهزة ويُحسب بالقطعة. خصم مكونات الإنتاج مثل الطحين والزبدة والزيت سيُضاف لاحقاً من خلال صفحة الوصفات والمقادير. البيانات في هذه النسخة محفوظة محلياً على هذا المتصفح.</p>
+</main>
+<script src="../js/core.js"></script>
+<script src="../js/admin/navigation.js"></script>
+<script src="../js/admin/inventory.js"></script>
+</body></html>
