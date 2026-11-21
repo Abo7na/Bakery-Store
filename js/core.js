@@ -7,7 +7,7 @@ const defaults={
   {id:"p3",name:"فطيرة الجبنة",category:"مناقيش وفطائر",price:28000,description:"جبنة ذائبة وعجينة ذهبية.",image:"assets/cheese.svg"},
   {id:"p4",name:"بيتزا صغيرة",category:"بيتزا",price:40000,description:"صلصة طماطم وجبنة ومكونات طازجة.",image:"assets/pizza.svg"}
  ],
- cart:{},orders:[],settings:{shop_name:"مخبوزات الشام",delivery_fee:5000,sham_cash:""}
+ cart:{},orders:[],directSales:[],settings:{shop_name:"مخبوزات الشام",delivery_fee:5000,sham_cash:""}
 };
 let state=loadState(),category="الكل",activeTab="overview";
 function loadState(){try{return {...structuredClone(defaults),...JSON.parse(localStorage.getItem(STORE_KEY)||"{}")}}catch{return structuredClone(defaults)}}
