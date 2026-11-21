@@ -1,0 +1,20 @@
+/* Storefront polish: local product artwork, refined cards and cart */
+.product{box-shadow:0 8px 24px #3825130a;transition:transform .2s ease,box-shadow .2s ease}
+.product:hover{transform:translateY(-4px);box-shadow:0 16px 32px #38251318}
+.product img{display:block;object-fit:cover;background:#f1e5d5}
+.product-info p{line-height:1.8}
+.add{transition:background .2s ease,transform .2s ease}
+.add:hover{background:var(--accent);transform:translateY(-1px)}
+.cart-row{align-items:center}
+.cart-row>span:first-child{flex:1}
+.qty{white-space:nowrap;display:flex;align-items:center;gap:9px}
+.qty button{width:30px;height:30px;border-radius:50%;font-size:17px;line-height:1}
+.drawer-foot small{color:var(--muted);font-weight:400}
+.checkout{max-height:55vh;overflow:auto}
+.checkout form{padding-bottom:12px}
+button:disabled{opacity:.45;cursor:not-allowed}
+input:focus,select:focus,textarea:focus{outline:2px solid #a65c3b55;border-color:var(--accent)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+.sham-payment-info{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:6px;background:#fffdf9;font-size:13px}.sham-account-row{display:flex;align-items:center;gap:8px;margin-top:8px}.sham-account-row span{flex:1;min-width:0;overflow-wrap:anywhere;direction:ltr;text-align:left;font-weight:700;padding:9px;background:var(--cream);border-radius:4px}.sham-account-row button{white-space:nowrap}.sham-payment-info small{display:block;color:var(--accent);margin-top:5px}
+
