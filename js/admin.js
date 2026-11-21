@@ -5,14 +5,14 @@ function renderAdmin(){
  $("#statSales").textContent=money(state.orders.filter(o=>["قيد التنفيذ","جاهز للاستلام","قيد التوصيل","تم التسليم","مقبول"].includes(o.status)).reduce((a,o)=>a+Number(o.total||0),0));
 }
 let orderStage="all",orderAge="all",orderSearch="";
-function orderStageFor(o){if(o.status==="بانتظار موافقة الإدارة"||o.status==="طلب تجريبي")return "pending";if(o.status==="مرفوض")return "finished";if(o.status==="تم التسليم")return "delivered";if(o.status==="قيد التوصيل")return "delivery";if(o.status==="جاهز للاستلام")return "ready";if(["قيد التنفيذ","مقبول"].includes(o.status))return "progress";return "pending"}
+function orderStageFor(o){if(o.status==="بانتظار موافقة الإدارة"||o.status==="طلب تجريبي")return "pending";if(o.status==="مرفوض")return "rejected";if(o.status==="تم التسليم")return "delivered";if(o.status==="قيد التوصيل")return "delivery";if(o.status==="جاهز للاستلام")return "ready";if(["قيد التنفيذ","مقبول"].includes(o.status))return "progress";return "pending"}
 function renderOrders(){
  const root=$("#adminOrders");if(!root)return;
  const sorted=[...state.orders].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
  const now=Date.now(),day=86400000;
  const filtered=sorted.filter(o=>{
   const stage=orderStageFor(o),created=new Date(o.createdAt||0).getTime();
-  const stageOk=orderStage==="all"||(orderStage==="finished"?["finished","delivered"].includes(stage):stage===orderStage);
+  const stageOk=orderStage==="all"||stage===orderStage;
   const ageOk=orderAge==="all"||(orderAge==="new"&&now-created<=day)||(orderAge==="old"&&now-created>day)||(orderAge==="finished"&&["finished","delivered"].includes(stage));
   const q=orderSearch.trim().toLocaleLowerCase();
   const searchOk=!q||[o.id,o.customer,o.phone].some(v=>String(v||"").toLocaleLowerCase().includes(q));
@@ -31,10 +31,7 @@ function renderOrders(){
   const result=o.status==="مرفوض"?'<p class="order-result">سبب الرفض: '+esc(o.rejectionReason||"غير محدد")+'</p>':o.status==="تم التسليم"?'<p class="order-result">تم التسليم في: '+esc(o.deliveredAt?new Date(o.deliveredAt).toLocaleString("ar-SY"):"غير محدد")+'</p>':o.status==="قيد التوصيل"?'<p class="order-result">الطلب في طريقه إلى الزبون.</p>':o.status==="جاهز للاستلام"?'<p class="order-result">الطلب جاهز للاستلام من المخبز.</p>':"";
   return '<details class="order-accordion"><summary><span><b>'+esc(o.id)+'</b><small>'+esc(o.customer||"زبون")+' · '+esc(o.phone||"")+'</small></span><span class="order-summary-side"><b>'+money(o.total)+'</b><em>'+esc(o.status||"بانتظار موافقة الإدارة")+'</em><small>'+esc(created)+'</small></span></summary><div class="order-card-body"><p><b>وقت استلام الطلب:</b> '+esc(created)+'</p><p><b>العميل:</b> '+esc(o.customer||"لم يذكر اسمه")+'</p><p><b>الهاتف:</b> '+esc(o.phone)+'</p><p><b>طريقة الاستلام:</b> '+(o.fulfillment==="delivery"?"توصيل":"استلام من المخبز")+'</p><p><b>العنوان:</b> '+esc(o.address)+'</p><p><b>موعد الزبون:</b> '+esc(req)+'</p><p><b>الدفع:</b> '+(o.payment==="sham"?"شام كاش":"نقداً / دفع يدوي")+'</p>'+(o.transaction?'<p><b>رقم عملية شام كاش:</b> '+esc(o.transaction)+'</p>':"")+(o.notes?'<p><b>ملاحظات:</b> '+esc(o.notes)+'</p>':"")+'<b>المنتجات:</b><ul>'+items+'</ul><p>المجموع الفرعي: '+money(o.subtotal)+'</p><p>التوصيل: '+money(o.delivery)+'</p><p class="order-total">الإجمالي: '+money(o.total)+'</p>'+result+actions+'</div></details>'
  }).join("")||'<div class="empty">لا توجد طلبات تطابق البحث أو الفلتر.</div>');
- const search=$("#orderSearch"),stageFilter=$("#orderStageFilter"),ageFilter=$("#orderAgeFilter");
- if(search){search.value=orderSearch;if(!search.dataset.bound){search.addEventListener("input",e=>{orderSearch=e.target.value;renderOrders()});search.dataset.bound="1"}}
- if(stageFilter){stageFilter.value=orderStage;if(!stageFilter.dataset.bound){stageFilter.addEventListener("change",e=>{orderStage=e.target.value;renderOrders()});stageFilter.dataset.bound="1"}}
- if(ageFilter){ageFilter.value=orderAge;if(!ageFilter.dataset.bound){ageFilter.addEventListener("change",e=>{orderAge=e.target.value;renderOrders()});ageFilter.dataset.bound="1"}}
+
 }
 function tab(name){activeTab=name;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("hidden",x.id!==name));document.querySelectorAll(".admin-nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===name))}
 function openAdmin(){const ok=confirm("هذه لوحة إدارة تجريبية على هذا المتصفح فقط. لا تستخدمها لاستقبال طلبات حقيقية قبل ربط قاعدة البيانات وتأمين الدخول. هل تريد المتابعة؟");if(!ok)return;$("#storeView").classList.add("hidden");$("#adminView").classList.remove("hidden");$("#settingsForm").elements.shopName.value=state.settings.shop_name;$("#settingsForm").elements.delivery.value=state.settings.delivery_fee;$("#settingsForm").elements.sham.value=state.settings.sham_cash;renderAdmin();tab(activeTab);window.scrollTo(0,0)}
