@@ -1,5 +1,5 @@
 (()=>{"use strict";
-const readStore=()=>{try{const raw=localStorage.getItem("bakery_store_syp_v1");const data=raw?JSON.parse(raw):{};return{orders:Array.isArray(data.orders)?data.orders:[],products:Array.isArray(data.products)?data.products:[],directSales:Array.isArray(data.directSales)?data.directSales:[]}}catch(error){console.error("Dashboard storage:",error);return{orders:[],products:[]}}};
+const readStore=()=>{try{const raw=localStorage.getItem("bakery_store_syp_v1");const data=raw?JSON.parse(raw):{};return{orders:Array.isArray(data.orders)?data.orders:[],products:Array.isArray(data.products)?data.products:[],directSales:Array.isArray(data.directSales)?data.directSales:[]}}catch(error){console.error("Dashboard storage:",error);return{orders:[],products:[],directSales:[]}}};
 const escValue=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const formatMoney=value=>new Intl.NumberFormat("ar-SY",{maximumFractionDigits:0}).format(Math.round(Number(value)||0))+" ل.س";
 function renderDashboard(){
