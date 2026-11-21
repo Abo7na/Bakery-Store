@@ -1,3 +1,6 @@
+.sales-products-section{display:block!important;margin:0 0 38px!important;padding:0 0 32px!important;border-bottom:1px solid #e8dfd4}
+.sale-summary-total strong small,.sale-total strong small{display:block;margin-top:5px;font-size:13px;font-weight:600;color:#80634b}
+.invoice-paper td small,.invoice-paper .invoice-totals small,.invoice-table small{font-size:10px;color:#80634b}
 .sales-products-section{margin-bottom:30px}
 .sale-stock{display:block;margin-top:3px}
 .sale-summary-total{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;padding:13px 14px;border-radius:10px;background:#ead9c2;color:#211d18;font-weight:800}
