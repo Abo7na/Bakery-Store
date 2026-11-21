@@ -5,17 +5,26 @@ function renderAdmin(){
  $("#statSales").textContent=money(state.orders.filter(o=>["قيد التنفيذ","جاهز للاستلام","قيد التوصيل","تم التسليم","مقبول"].includes(o.status)).reduce((a,o)=>a+Number(o.total||0),0));
 }
 let orderStage="all",orderAge="all",orderSearch="";
+function normalizeFulfillment(value){const v=String(value||"").trim().toLocaleLowerCase();return ["delivery","deliver","دليفري","توصيل","توصيل للمنزل"].includes(v)?"delivery":"pickup"}
+function isDeliveryOrder(o){return normalizeFulfillment(o.fulfillment)==="delivery"}
 function orderStageFor(o){
- const s=String(o.status||"");
- if(s==="بانتظار موافقة الإدارة"||s==="طلب تجريبي")return "pending";
- if(s==="مرفوض")return "rejected";
- if(s==="تم التسليم")return "delivered";
- if(s==="قيد التوصيل")return "delivery";
- if(s==="جاهز للاستلام")return "ready";
- if(["قيد التنفيذ","مقبول"].includes(s))return "progress";
+ const s=String(o.status||"").trim();
+ if(["مرفوض","مرفوضة","rejected"].includes(s))return "rejected";
+ if(["تم التسليم","مكتمل","مكتملة","delivered","completed"].includes(s))return "delivered";
+ if(["قيد التوصيل","خرج للتوصيل","out_for_delivery","delivery"].includes(s))return "delivery";
+ if(["جاهز للاستلام","جاهز","جاهزة","ready"].includes(s))return isDeliveryOrder(o)?"delivery":"ready";
+ if(["قيد التنفيذ","مقبول","processing","accepted","in_progress"].includes(s))return "progress";
  return "pending";
 }
-function isDeliveryOrder(o){return ["delivery","دليفري","توصيل"].includes(String(o.fulfillment||"").trim().toLocaleLowerCase())}
+function setOrderStage(o,stage){
+ const now=new Date().toISOString();
+ if(stage==="pending"){o.status="بانتظار موافقة الإدارة"}
+ if(stage==="progress"){o.status="قيد التنفيذ"}
+ if(stage==="ready"){o.status=isDeliveryOrder(o)?"قيد التوصيل":"جاهز للاستلام";o.readyAt=now}
+ if(stage==="delivery"){o.status="قيد التوصيل";o.readyAt=o.readyAt||now}
+ if(stage==="delivered"){o.status="تم التسليم";o.deliveredAt=now}
+ if(stage==="rejected"){o.status="مرفوض"}
+}
 function renderOrders(){
  const root=$("#adminOrders");if(!root)return;
  const sorted=[...state.orders].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
@@ -53,13 +62,13 @@ $("#ordersAdmin").addEventListener("click",e=>{
  const add=e.target.closest("[data-add-minutes]");
  if(add){const o=state.orders.find(x=>x.id===add.dataset.order);if(!o||orderStageFor(o)!=="pending")return;o.preparationMinutes=(Number(o.preparationMinutes)||0)+Number(add.dataset.addMinutes);save();renderOrders();return}
  const accept=e.target.closest("[data-accept]");
- if(accept){const o=state.orders.find(x=>x.id===accept.dataset.accept);if(!o)return;const mins=Number(o.preparationMinutes)||0;if(!mins){alert("أضف مدة التجهيز قبل قبول الطلب.");return}if(!confirm("قبول الطلب "+o.id+"؟"))return;o.status="قيد التنفيذ";o.estimatedReadyAt=new Date(new Date(o.createdAt).getTime()+mins*60000).toISOString();o.customerNotice="تم قبول طلبك رقم "+o.id+". مدة التجهيز "+mins+" دقيقة.";save();renderAdmin();alert("تم قبول الطلب ونقله إلى قيد التنفيذ.");return}
+ if(accept){const o=state.orders.find(x=>x.id===accept.dataset.accept);if(!o)return;const mins=Number(o.preparationMinutes)||0;if(!mins){alert("أضف مدة التجهيز قبل قبول الطلب.");return}if(!confirm("قبول الطلب "+o.id+"؟"))return;setOrderStage(o,"progress");o.estimatedReadyAt=new Date(new Date(o.createdAt||Date.now()).getTime()+mins*60000).toISOString();o.customerNotice="تم قبول طلبك رقم "+o.id+". مدة التجهيز "+mins+" دقيقة.";save();renderAdmin();alert("تم قبول الطلب ونقله إلى قيد التنفيذ.");return}
  const reject=e.target.closest("[data-reject]");
  if(reject){const o=state.orders.find(x=>x.id===reject.dataset.reject);if(!o)return;const select=$("#adminOrders").querySelector('[data-reason="'+CSS.escape(o.id)+'"]');if(!select||!select.value){alert("اختر سبب الرفض.");return}if(!confirm("رفض الطلب بسبب "+select.value+"؟"))return;o.status="مرفوض";o.rejectionReason=select.value;o.customerNotice="نعتذر عن طلبك "+o.id+". السبب: "+select.value;save();renderAdmin();return}
  const ready=e.target.closest("[data-ready]");
- if(ready){const o=state.orders.find(x=>x.id===ready.dataset.ready);if(!o||o.status!=="قيد التنفيذ")return;if(!confirm("تأكيد أن الطلب أصبح جاهزاً؟"))return;o.status=isDeliveryOrder(o)?"قيد التوصيل":"جاهز للاستلام";o.readyAt=new Date().toISOString();o.customerNotice=isDeliveryOrder(o)?"طلبك جاهز وخرج للتوصيل.":"طلبك جاهز للاستلام من المخبز.";save();renderAdmin();return}
+ if(ready){const o=state.orders.find(x=>x.id===ready.dataset.ready);if(!o||orderStageFor(o)!=="progress")return;if(!confirm("تأكيد أن الطلب أصبح جاهزاً؟"))return;setOrderStage(o,"ready");o.customerNotice=isDeliveryOrder(o)?"طلبك جاهز وخرج للتوصيل.":"طلبك جاهز للاستلام من المخبز.";save();renderAdmin();return}
  const delivered=e.target.closest("[data-delivered]");
- if(delivered){const o=state.orders.find(x=>x.id===delivered.dataset.delivered);if(!o)return;if(!confirm("تأكيد تسليم الطلب "+o.id+"؟"))return;o.status="تم التسليم";o.deliveredAt=new Date().toISOString();o.customerNotice="تم تسليم طلبك. شكراً لزيارتك.";save();renderAdmin()}
+ if(delivered){const o=state.orders.find(x=>x.id===delivered.dataset.delivered);if(!o)return;if(!confirm("تأكيد تسليم الطلب "+o.id+"؟"))return;setOrderStage(o,"delivered");o.customerNotice="تم تسليم طلبك. شكراً لزيارتك.";save();renderAdmin()}
 });
 let editingProductId=null;
 const productForm=$("#productForm"),categorySelect=$("#categorySelect"),customCategoryField=$("#customCategoryField"),customCategoryInput=$("#customCategory");
