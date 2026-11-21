@@ -29,3 +29,10 @@
 .inventory-movement strong.minus{color:#a53b32}
 .inventory-empty{padding:22px;text-align:center;color:var(--muted);font-size:12px;border:1px dashed var(--line);border-radius:9px}
 @media(max-width:760px){.inventory-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.inventory-stats article,.inventory-stat{padding:12px}.inventory-stats b{font-size:20px}.inventory-product-list{grid-template-columns:1fr}.inventory-section-head{align-items:stretch;flex-direction:column}.inventory-section-head input,.inventory-section-head select{max-width:none;width:100%}}
+
+.inventory-card-actions{display:flex;align-items:center;gap:12px}
+.inventory-edit-btn{border:1px solid #cdb99f;border-radius:8px;padding:7px 11px;background:#f8f3ec;color:#604a37;font:inherit;font-size:11px;cursor:pointer}
+.inventory-edit-btn:hover,.inventory-edit-btn:focus-visible{background:#fff;outline:2px solid #b17a50;outline-offset:2px}
+.inventory-product>div:first-child{min-width:0}
+#materialEditSection[hidden]{display:none}
+@media(max-width:760px){.inventory-card-actions{gap:8px}.inventory-edit-btn{padding:6px 9px}}
