@@ -16,3 +16,5 @@
 button:disabled{opacity:.45;cursor:not-allowed}
 input:focus,select:focus,textarea:focus{outline:2px solid #a65c3b55;border-color:var(--accent)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+.sham-payment-info{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:6px;background:#fffdf9;font-size:13px}.sham-account-row{display:flex;align-items:center;gap:8px;margin-top:8px}.sham-account-row span{flex:1;min-width:0;overflow-wrap:anywhere;direction:ltr;text-align:left;font-weight:700;padding:9px;background:var(--cream);border-radius:4px}.sham-account-row button{white-space:nowrap}.sham-payment-info small{display:block;color:var(--accent);margin-top:5px}
