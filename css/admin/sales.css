@@ -1,3 +1,7 @@
+.sales-products-section{margin-bottom:30px}
+.sale-stock{display:block;margin-top:3px}
+.sale-summary-total{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;padding:13px 14px;border-radius:10px;background:#ead9c2;color:#211d18;font-weight:800}
+.sale-summary-total strong{font-size:20px}
 /* Direct sale: cards only, using the exact dashboard metric-card palette */
 .sales-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .sale-product-card{display:flex;flex-direction:column;justify-content:space-between;min-width:0;min-height:168px;padding:15px;border:1px solid var(--line);border-radius:12px;background:#ead9c2;box-shadow:none}
