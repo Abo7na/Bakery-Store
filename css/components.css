@@ -78,3 +78,27 @@ input:focus,select:focus,textarea:focus{outline:2px solid #a65c3b55;border-color
 #ordersAdmin .orders-section-options button{background:transparent;border:0;text-align:right;padding:11px 10px;border-radius:6px;font:inherit;font-size:13px;color:inherit}
 #ordersAdmin .orders-section-options button:hover,#ordersAdmin .orders-section-options button:focus{background:var(--cream)}
 @media(max-width:520px){#ordersAdmin .order-filter-row{grid-template-columns:1fr}#ordersAdmin .orders-toolbar{padding:10px}}
+
+/* Order management dashboard - desktop table, mobile-first cards */
+#ordersAdmin .orders-toolbar{position:relative;top:auto;z-index:3;background:#fff;padding:12px;border:1px solid var(--line);border-radius:12px;margin:14px 0;display:grid;gap:10px}
+#ordersAdmin .orders-toolbar input,#ordersAdmin .orders-toolbar select{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit;font-size:14px}
+#ordersAdmin .order-filter-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#ordersAdmin .orders-section-menu{position:relative}
+#ordersAdmin .orders-section-menu>summary{list-style:none;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:space-between;font-size:14px;cursor:pointer}
+#ordersAdmin .orders-section-menu>summary::-webkit-details-marker{display:none}
+#ordersAdmin .orders-section-options{position:absolute;z-index:30;top:calc(100% + 5px);right:0;left:0;background:#fff;border:1px solid var(--line);border-radius:9px;padding:6px;box-shadow:0 12px 30px #24170f22;display:grid;max-height:55vh;overflow:auto}
+#ordersAdmin .orders-section-options button{border:0;background:transparent;text-align:right;padding:11px;border-radius:6px;font:inherit}
+#ordersAdmin .orders-section-options button:hover{background:var(--cream)}
+.orders-overview-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin:14px 0}
+.orders-stat{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;min-height:64px;padding:8px 4px;border:1px solid var(--line);border-radius:9px;background:#fff;color:inherit}
+.orders-stat b{font-size:19px}.orders-stat span{font-size:10px;text-align:center;line-height:1.4}.orders-stat.active{border-color:var(--accent);background:var(--cream)}
+.orders-table-head{display:grid;grid-template-columns:2fr 1.35fr .7fr .9fr 1fr;gap:10px;padding:10px 14px;background:#f5f0e9;border-radius:8px 8px 0 0;font-size:12px;font-weight:800;color:var(--muted)}
+#adminOrders .order-accordion{margin:0;border:0;border-bottom:1px solid #e9e1d8;border-radius:0;box-shadow:none;background:#fff}
+#adminOrders .order-accordion:last-of-type{border-radius:0 0 9px 9px}
+#adminOrders .order-accordion summary.order-row-summary{display:grid;grid-template-columns:2fr 1.35fr .7fr .9fr 1fr;gap:10px;align-items:center;padding:13px 14px;min-height:67px}
+#adminOrders .order-accordion summary.order-row-summary:after{content:"⌄";font-size:15px}
+#adminOrders .order-accordion[open] summary.order-row-summary{background:#fcf8f2}
+.order-cell{min-width:0;font-size:12px;overflow-wrap:anywhere}.order-cell small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.order-total-cell{font-weight:800;white-space:nowrap}.order-status-cell em{font-style:normal;font-size:10px;display:inline-block;padding:5px 7px;border-radius:20px;background:#f2eee7;white-space:normal}.status-pending{background:#fff2d8!important;color:#87601d}.status-progress{background:#e2f2e7!important;color:#24683a}.status-ready{background:#e5f0fb!important;color:#285d8d}.status-delivery{background:#fff0d9!important;color:#895b16}.status-delivered{background:#e3f3e7!important;color:#27683b}.status-rejected{background:#fbe6e4!important;color:#963b34}
+#adminOrders .order-card-body{padding:16px;background:#fffdf9;line-height:1.8}
+.order-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 18px}.order-detail-grid p{margin:0;padding:6px 0;border-bottom:1px dashed #e8e0d7;overflow-wrap:anywhere}.order-items-box{margin-top:12px;padding:12px;background:#f7f3ed;border-radius:8px}.order-items-box ul{margin:6px 0;padding-right:22px;line-height:2}
+@media(max-width:650px){.orders-overview-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.orders-stat{min-height:58px}.orders-stat b{font-size:17px}.orders-stat span{font-size:10px}#ordersAdmin .order-filter-row{grid-template-columns:1fr}.orders-table-head{display:none}#adminOrders .order-accordion{border:1px solid var(--line);border-radius:11px;margin:0 0 11px;overflow:hidden}#adminOrders .order-accordion summary.order-row-summary{grid-template-columns:1fr auto;gap:7px 10px;padding:13px;min-height:0}#adminOrders .order-id-cell{grid-column:1;grid-row:1}.order-date-cell{grid-column:1;grid-row:2;color:var(--muted);font-size:11px}.order-type-cell{grid-column:2;grid-row:1;text-align:left}.order-total-cell{grid-column:2;grid-row:2;text-align:left}.order-status-cell{grid-column:1/-1;grid-row:3}.order-status-cell em{font-size:11px}#adminOrders .order-card-body{padding:12px}.order-detail-grid{grid-template-columns:1fr;gap:0}.order-items-box{font-size:13px}}
