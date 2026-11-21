@@ -36,3 +36,9 @@
 .inventory-product>div:first-child{min-width:0}
 #materialEditSection[hidden]{display:none}
 @media(max-width:760px){.inventory-card-actions{gap:8px}.inventory-edit-btn{padding:6px 9px}}
+
+/* Inventory materials as a vertical list */
+.inventory-product-list{display:flex;flex-direction:column;gap:8px}
+.inventory-product{width:100%;min-height:84px}
+.inventory-total-value{display:inline-block;margin-top:5px;color:#3d6a43;font-size:12px}
+.inventory-card-actions{margin-inline-start:auto}
