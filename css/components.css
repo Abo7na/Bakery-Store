@@ -15,17 +15,22 @@
 button:disabled{opacity:.45;cursor:not-allowed}
 input:focus,select:focus,textarea:focus{outline:2px solid #a65c3b55;border-color:var(--accent)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
-
 .sham-payment-info{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:6px;background:#fffdf9;font-size:13px}.sham-account-row{display:flex;align-items:center;gap:8px;margin-top:8px}.sham-account-row span{flex:1;min-width:0;overflow-wrap:anywhere;direction:ltr;text-align:left;font-weight:700;padding:9px;background:var(--cream);border-radius:4px}.sham-account-row button{white-space:nowrap}.sham-payment-info small{display:block;color:var(--accent);margin-top:5px}
-
-
-/* Product administration controls */
-.admin-products-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px}
-.admin-products-head h3{margin:0}
-.product-form-actions,.admin-item-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.admin-item{align-items:center}
-.admin-item-actions button{border:1px solid var(--line);background:#fff;padding:6px 12px;border-radius:4px;font-weight:700}
-.danger{border:1px solid #a43d32;background:#a43d32;color:#fff;padding:9px 13px;border-radius:5px;font-weight:700}
-.danger:hover{background:#862e26}
-.danger-text{color:#a43d32!important;border-color:#e6c8c3!important}
+.admin-products-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px}.admin-products-head h3{margin:0}.product-form-actions,.admin-item-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.admin-item{align-items:center}.admin-item-actions button{border:1px solid var(--line);background:#fff;padding:6px 12px;border-radius:4px;font-weight:700}.danger{border:1px solid #a43d32;background:#a43d32;color:#fff;padding:9px 13px;border-radius:5px;font-weight:700}.danger:hover{background:#862e26}.danger-text{color:#a43d32!important;border-color:#e6c8c3!important}
 @media(max-width:520px){.admin-products-head{align-items:stretch;flex-direction:column}.admin-products-head .danger{width:100%}.admin-item{align-items:flex-start;flex-direction:column}.admin-item-actions{width:100%}.admin-item-actions button{flex:1}}
+
+/* Order management cards */
+.order-card{border:1px solid var(--line);border-radius:8px;background:#fff;padding:16px;margin:14px 0;box-shadow:0 5px 18px #38251308}
+.order-card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.order-status{background:var(--cream);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.order-meta{font-size:12px;color:var(--muted);margin-top:8px}
+.order-details{font-size:13px;line-height:1.8;padding:8px 0}
+.order-details p{margin:5px 0}
+.order-details ul{padding-right:22px;margin:5px 0}
+.order-total{font-size:16px;font-weight:800;color:var(--accent)}
+.order-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.order-actions label{display:grid;gap:5px;font-size:12px;font-weight:700}
+.order-actions input,.order-actions select{width:100%;min-width:0;padding:9px;border:1px solid var(--line);border-radius:5px;background:#fff;font:inherit}
+.order-actions button{align-self:end}
+.order-result{padding:10px;background:var(--cream);border-radius:5px;font-size:13px}
+@media(max-width:520px){.order-actions{grid-template-columns:1fr}.order-actions button{width:100%}.order-card{padding:12px}}
