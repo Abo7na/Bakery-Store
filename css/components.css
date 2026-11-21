@@ -34,3 +34,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid #a65c3b55;border-color
 .order-actions button{align-self:end}
 .order-result{padding:10px;background:var(--cream);border-radius:5px;font-size:13px}
 @media(max-width:520px){.order-actions{grid-template-columns:1fr}.order-actions button{width:100%}.order-card{padding:12px}}
+
+/* Repeatable order preparation-time controls */
+.deferred-toggle{display:flex!important;grid-template-columns:auto 1fr;align-items:center;gap:9px}.deferred-toggle input{width:auto!important;min-width:18px;height:18px}
+.prep-control{grid-column:1/-1;padding:12px;background:var(--cream);border-radius:7px;display:grid;gap:8px}.prep-buttons{display:flex;gap:8px;flex-wrap:wrap}.prep-buttons button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:9px 14px;font-weight:800;flex:1;min-width:70px}.prep-buttons button:active{background:var(--accent);color:#fff}.prep-control p{margin:0;font-size:13px}
