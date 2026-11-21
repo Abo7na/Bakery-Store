@@ -11,33 +11,45 @@
 <body class="admin-body">
 <div id="adminSidebar"></div>
 <main class="admin-main inventory-main">
-<header class="admin-page-head"><div><span class="eyebrow">إدارة المنتجات والكميات</span><h1>المخزون</h1><p>تابع الكميات المتوفرة وسجّل التوريد والتعديلات وحركة المنتجات.</p></div></header>
+<header class="admin-page-head"><div><span class="eyebrow">إدارة المواد الأولية</span><h1>مخزون المواد الأولية</h1><p>تابع الطحين والسكر والزبدة والزيوت والجبن وغيرها من المواد المستخدمة في الإنتاج.</p></div></header>
 <section class="inventory-stats">
-<article><span>عدد المنتجات</span><b id="inventoryProducts">0</b></article>
-<article><span>إجمالي القطع المتوفرة</span><b id="inventoryUnits">0</b></article>
-<article><span>منتجات منخفضة المخزون</span><b id="inventoryLow">0</b></article>
-<article><span>منتجات نافدة</span><b id="inventoryOut">0</b></article>
+<button type="button" class="inventory-stat" data-target="materialsSection"><span>عدد المواد الأولية</span><b id="inventoryProducts">0</b><small>عرض المواد</small></button>
+<button type="button" class="inventory-stat" data-target="materialsSection"><span>إجمالي الكميات</span><b id="inventoryUnits">0</b><small>حسب وحدات القياس</small></button>
+<button type="button" class="inventory-stat" data-target="lowSection"><span>مواد منخفضة المخزون</span><b id="inventoryLow">0</b><small>عرض المواد المنخفضة</small></button>
+<button type="button" class="inventory-stat" data-target="outSection"><span>مواد نافدة</span><b id="inventoryOut">0</b><small>عرض المواد النافدة</small></button>
 </section>
-<section class="admin-card inventory-adjust-card">
-<h2>تسجيل حركة مخزون</h2>
-<p class="inventory-hint">استخدم «توريد» عند وصول بضاعة جديدة، أو «سحب» للنقص اليدوي، أو «تسوية» لتعيين الكمية الصحيحة.</p>
+<section class="admin-card" id="newMaterialSection">
+<h2>إضافة مادة أولية</h2>
+<form id="materialForm" class="formgrid">
+<label>اسم المادة<input name="name" required maxlength="80" placeholder="مثال: طحين"></label>
+<label>وحدة القياس<select name="unit" required><option value="كغ">كيلوغرام (كغ)</option><option value="غ">غرام (غ)</option><option value="لتر">لتر</option><option value="مل">ملليلتر (مل)</option><option value="قطعة">قطعة</option></select></label>
+<label>الكمية الافتتاحية<input name="quantity" type="number" min="0" step="0.001" value="0" required></label>
+<label>حد التنبيه<input name="minimum" type="number" min="0" step="0.001" value="0" required></label>
+<div class="wide form-actions"><button class="primary" type="submit">إضافة المادة</button></div>
+</form>
+</section>
+<section class="admin-card inventory-adjust-card" id="movementFormSection">
+<h2>تسجيل حركة مادة أولية</h2>
+<p class="inventory-hint">سجّل شراء المواد الأولية أو السحب أو التسوية. لن تُخصم المقادير بسبب البيع إلا بعد إعداد الوصفات لاحقاً.</p>
 <form id="inventoryForm" class="formgrid">
-<label>المنتج<select name="productId" id="inventoryProduct" required></select></label>
+<label>المادة الأولية<select name="materialId" id="inventoryProduct" required></select></label>
 <label>نوع الحركة<select name="action" required><option value="add">توريد كمية</option><option value="remove">سحب كمية</option><option value="set">تسوية الكمية الحالية</option></select></label>
-<label>الكمية<input name="quantity" type="number" min="0" step="1" required placeholder="أدخل الكمية"></label>
+<label>الكمية<input name="quantity" type="number" min="0" step="0.001" required placeholder="أدخل الكمية"></label>
 <label>سبب الحركة<input name="reason" maxlength="120" placeholder="مثال: توريد صباحي"></label>
 <div class="wide form-actions"><button class="primary" type="submit">حفظ حركة المخزون</button></div>
 </form>
 </section>
-<section class="admin-card">
-<div class="inventory-section-head"><div><h2>كميات المنتجات</h2><small>يتم تحديث الكميات تلقائياً بعد البيع وقبول الطلبات</small></div><input id="inventorySearch" type="search" placeholder="ابحث عن منتج..."></div>
+<section class="admin-card" id="materialsSection">
+<div class="inventory-section-head"><div><h2>المواد الأولية</h2><small>الكميات الحالية لكل مادة ووحدة قياسها</small></div><input id="inventorySearch" type="search" placeholder="ابحث عن مادة..."></div>
 <div id="inventoryProductsList" class="inventory-product-list"></div>
 </section>
+<section class="admin-card" id="lowSection"><div class="inventory-section-head"><h2>المواد منخفضة المخزون</h2></div><div id="inventoryLowList" class="inventory-product-list"></div></section>
+<section class="admin-card" id="outSection"><div class="inventory-section-head"><h2>المواد النافدة</h2></div><div id="inventoryOutList" class="inventory-product-list"></div></section>
 <section class="admin-card">
-<div class="inventory-section-head"><div><h2>سجل حركة المخزون</h2><small id="movementCount">0 حركة</small></div><select id="movementFilter"><option value="all">كل الحركات</option><option value="add">توريد</option><option value="remove">سحب</option><option value="sale">بيع مباشر</option><option value="order">طلب إلكتروني</option><option value="adjustment">تسوية / تعديل</option></select></div>
+<div class="inventory-section-head"><div><h2>سجل حركة المواد الأولية</h2><small id="movementCount">0 حركة</small></div><select id="movementFilter"><option value="all">كل الحركات</option><option value="add">توريد</option><option value="remove">سحب</option><option value="set">تسوية</option></select></div>
 <div id="inventoryMovements" class="inventory-movements"></div>
 </section>
-<p class="admin-notice">المخزون الحالي خاص بالمنتجات الجاهزة ويُحسب بالقطعة. خصم مكونات الإنتاج مثل الطحين والزبدة والزيت سيُضاف لاحقاً من خلال صفحة الوصفات والمقادير. البيانات في هذه النسخة محفوظة محلياً على هذا المتصفح.</p>
+<p class="admin-notice">هذه الصفحة مخصصة لشراء وتخزين المواد الأولية، وليست لشراء المعجنات الجاهزة. ربط استهلاك المواد بالمبيعات سيتم لاحقاً من خلال صفحة الوصفات والمقادير. البيانات في هذه النسخة محفوظة محلياً على هذا المتصفح.</p>
 </main>
 <script src="../js/core.js"></script>
 <script src="../js/admin/navigation.js"></script>
