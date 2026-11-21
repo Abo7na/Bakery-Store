@@ -18,7 +18,7 @@ function renderOrders(){
   const searchOk=!q||[o.id,o.customer,o.phone].some(v=>String(v||"").toLocaleLowerCase().includes(q));
   return stageOk&&ageOk&&searchOk
  });
- root.innerHTML='<div class="orders-toolbar"><input id="orderSearch" type="search" placeholder="ابحث برقم الطلب أو اسم الزبون أو الهاتف" value="'+esc(orderSearch)+'"><div class="order-filter-row"><select id="orderStageFilter"><option value="all">كل الأقسام</option><option value="pending">بانتظار الموافقة</option><option value="progress">قيد التنفيذ</option><option value="ready">جاهزة للاستلام</option><option value="delivery">قيد التوصيل</option><option value="delivered">تم التسليم</option><option value="finished">الطلبات المنتهية</option></select><select id="orderAgeFilter"><option value="all">كل الفترات</option><option value="new">الطلبات الحديثة (آخر 24 ساعة)</option><option value="old">الطلبات القديمة (أكثر من 24 ساعة)</option><option value="finished">المنتهية</option></select></div></div><div class="orders-count">عرض '+filtered.length+' من '+state.orders.length+' طلب — الأحدث أولاً</div>'+ (filtered.map(o=>{
+ root.innerHTML='<div class="orders-count">عرض '+filtered.length+' من '+state.orders.length+' طلب — الأحدث أولاً</div>' + (filtered.map(o=>{
   const stage=orderStageFor(o),created=o.createdAt?new Date(o.createdAt).toLocaleString("ar-SY"):"غير متوفر";
   const items=(o.items||[]).map(i=>'<li>'+esc(i.name)+' × '+i.qty+' — '+money(i.price*i.qty)+'</li>').join("");
   const req=o.deferred&&o.requestedTime?new Date(o.requestedTime).toLocaleString("ar-SY"):"طلب فوري";
