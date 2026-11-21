@@ -1,8 +1,10 @@
 .inventory-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.inventory-stats article{padding:16px;border:1px solid #e7dac9;border-radius:12px;background:#ead9c2;color:#211d18}
-.inventory-stats span,.inventory-stats b{display:block}
-.inventory-stats span{font-size:12px;color:#796b5b}
-.inventory-stats b{margin-top:7px;font-size:25px}
+.inventory-stat{display:block;text-align:right;width:100%;padding:16px;border:1px solid #e7dac9;border-radius:12px;background:#ead9c2;color:#211d18;font:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.inventory-stat:hover,.inventory-stat:focus-visible{transform:translateY(-2px);box-shadow:0 5px 16px #2b21151c;outline:2px solid #b17a50;outline-offset:2px}
+.inventory-stat span,.inventory-stat b,.inventory-stat small{display:block}
+.inventory-stat span{font-size:12px;color:#796b5b}
+.inventory-stat b{margin-top:7px;font-size:25px}
+.inventory-stat small{margin-top:4px;color:#8c6448;font-size:10px}
 .inventory-hint{margin:-5px 0 14px;color:var(--muted);font-size:12px;line-height:1.8}
 .inventory-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 .inventory-section-head h2{margin:0 0 3px}
@@ -26,4 +28,4 @@
 .inventory-movement strong.plus{color:#287344}
 .inventory-movement strong.minus{color:#a53b32}
 .inventory-empty{padding:22px;text-align:center;color:var(--muted);font-size:12px;border:1px dashed var(--line);border-radius:9px}
-@media(max-width:760px){.inventory-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.inventory-stats article{padding:12px}.inventory-stats b{font-size:20px}.inventory-product-list{grid-template-columns:1fr}.inventory-section-head{align-items:stretch;flex-direction:column}.inventory-section-head input,.inventory-section-head select{max-width:none;width:100%}}
+@media(max-width:760px){.inventory-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.inventory-stats article,.inventory-stat{padding:12px}.inventory-stats b{font-size:20px}.inventory-product-list{grid-template-columns:1fr}.inventory-section-head{align-items:stretch;flex-direction:column}.inventory-section-head input,.inventory-section-head select{max-width:none;width:100%}}
