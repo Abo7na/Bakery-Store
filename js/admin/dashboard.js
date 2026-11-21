@@ -1,0 +1,1 @@
+$("#statProducts").textContent=state.products.length;$("#statOrders").textContent=state.orders.length;$("#statSales").textContent=money(state.orders.filter(o=>!["مرفوض","مرفوضة"].includes(o.status)).reduce((sum,o)=>sum+Number(o.total||0),0));
