@@ -1,0 +1,1 @@
+.admin-products-list:empty:after{content:"لا توجد منتجات مضافة.";display:block;padding:25px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:9px}
