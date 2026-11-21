@@ -91,3 +91,55 @@
   .product-counter button{width:27px;height:27px;font-size:17px}
   .product-counter b{font-size:14px;min-width:16px}
 }
+
+/* Stable mobile layout: six cards are grouped into each swipe page */
+@media(max-width:560px){
+  .sales-products{
+    display:flex!important;
+    flex-flow:row nowrap!important;
+    align-items:stretch;
+    gap:10px!important;
+    width:100%;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:0 0 12px!important;
+    margin:0!important;
+    scroll-snap-type:x mandatory;
+    scroll-padding-inline:0;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    scrollbar-color:#b99a79 #eee5da;
+  }
+  .sales-products::-webkit-scrollbar{height:6px}
+  .sales-products::-webkit-scrollbar-track{background:#eee5da;border-radius:10px}
+  .sales-products::-webkit-scrollbar-thumb{background:#b99a79;border-radius:10px}
+  .sales-products-page{
+    box-sizing:border-box;
+    flex:0 0 100%;
+    width:100%;
+    min-width:100%;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:repeat(3,minmax(112px,auto));
+    gap:8px;
+    scroll-snap-align:start;
+  }
+  .sale-product-card{
+    box-sizing:border-box;
+    width:100%;
+    min-width:0;
+    min-height:112px;
+    height:100%;
+    padding:9px;
+    overflow:hidden;
+  }
+  .sale-card-info{min-width:0;gap:2px}
+  .sale-card-info h3{font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+  .sale-card-info strong{font-size:13px}
+  .sale-stock{font-size:9px;line-height:1.35}
+  .sale-card-bottom{margin-top:6px;padding-top:5px}
+  .product-counter{gap:7px}
+  .product-counter button{width:27px;height:27px;font-size:17px}
+  .product-counter b{font-size:14px;min-width:16px}
+}
