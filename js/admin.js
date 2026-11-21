@@ -58,7 +58,7 @@ $("#ordersAdmin").addEventListener("input",e=>{if(e.target.id==="orderSearch"){o
 $("#ordersAdmin").addEventListener("change",e=>{if(e.target.id==="orderAgeFilter"){orderAge=e.target.value;renderOrders()}});
 $("#ordersAdmin").addEventListener("click",e=>{
  const section=e.target.closest("[data-order-stage]");
- if(section){orderStage=section.dataset.orderStage;$("#orderSectionLabel").textContent="أقسام الطلبات: "+section.textContent;$("#ordersSectionMenu").open=false;renderOrders();return}
+ if(section){orderStage=section.dataset.orderStage;$("#ordersSidebar").open=false;$("#ordersSidebar>summary span:first-child").textContent="البحث وأقسام الطلبات · "+section.textContent;document.querySelectorAll("[data-order-stage]").forEach(x=>x.classList.toggle("active",x.dataset.orderStage===orderStage));renderOrders();return}
  const add=e.target.closest("[data-add-minutes]");
  if(add){const o=state.orders.find(x=>x.id===add.dataset.order);if(!o||orderStageFor(o)!=="pending")return;o.preparationMinutes=(Number(o.preparationMinutes)||0)+Number(add.dataset.addMinutes);save();renderOrders();return}
  const accept=e.target.closest("[data-accept]");
