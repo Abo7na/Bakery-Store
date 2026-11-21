@@ -37,7 +37,11 @@ function tab(name){activeTab=name;document.querySelectorAll(".tab").forEach(x=>x
 function openAdmin(){const ok=confirm("هذه لوحة إدارة تجريبية على هذا المتصفح فقط. لا تستخدمها لاستقبال طلبات حقيقية قبل ربط قاعدة البيانات وتأمين الدخول. هل تريد المتابعة؟");if(!ok)return;$("#storeView").classList.add("hidden");$("#adminView").classList.remove("hidden");$("#settingsForm").elements.shopName.value=state.settings.shop_name;$("#settingsForm").elements.delivery.value=state.settings.delivery_fee;$("#settingsForm").elements.sham.value=state.settings.sham_cash;renderAdmin();tab(activeTab);window.scrollTo(0,0)}
 $("#adminBtn").onclick=openAdmin;$("#backStore").onclick=()=>{$("#adminView").classList.add("hidden");$("#storeView").classList.remove("hidden");window.scrollTo(0,0)};
 $(".admin-nav").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(b){tab(b.dataset.tab);renderAdmin()}});
-$("#adminOrders").addEventListener("click",e=>{
+$("#ordersAdmin").addEventListener("input",e=>{if(e.target.id==="orderSearch"){orderSearch=e.target.value;renderOrders()}});
+$("#ordersAdmin").addEventListener("change",e=>{if(e.target.id==="orderAgeFilter"){orderAge=e.target.value;renderOrders()}});
+$("#ordersAdmin").addEventListener("click",e=>{
+ const section=e.target.closest("[data-order-stage]");
+ if(section){orderStage=section.dataset.orderStage;$("#orderSectionLabel").textContent="أقسام الطلبات: "+section.textContent;$("#ordersSectionMenu").open=false;renderOrders();return}
  const add=e.target.closest("[data-add-minutes]");
  if(add){const o=state.orders.find(x=>x.id===add.dataset.order);if(!o||orderStageFor(o)!=="pending")return;o.preparationMinutes=(Number(o.preparationMinutes)||0)+Number(add.dataset.addMinutes);save();renderOrders();return}
  const accept=e.target.closest("[data-accept]");
