@@ -7,10 +7,10 @@ async function isAdmin(request,env){if(!env.SESSION_SECRET)return false;const ra
 async function requireAdmin(request,env){return await isAdmin(request,env)}
 function cookie(value,maxAge){return cookieName+"="+value+"; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age="+maxAge}
 function slugPath(path){return path.replace(/^api\/?/,"").split("/").filter(Boolean)}
-export async function onRequest({request,env}){try{
+export async function onRequest({request,env,waitUntil}){try{
  if(!env.DB||!env.IMAGES)return json({error:"Cloudflare bindings DB and IMAGES are not configured."},503);
  const url=new URL(request.url),parts=slugPath(url.pathname),method=request.method;
- if(parts[0]==="images"&&parts[1]&&method==="GET"){const key=parts.slice(1).join("/");const obj=await env.IMAGES.get(key);if(!obj)return new Response("Not found",{status:404});const headers=new Headers();obj.writeHttpMetadata(headers);headers.set("Cache-Control","public, max-age=86400, s-maxage=604800");headers.set("ETag",obj.httpEtag);return new Response(obj.body,{headers});}
+ if(parts[0]==="images"&&parts[1]&&method==="GET"){const cache=caches.default;const cached=await cache.match(request);if(cached)return cached;const key=parts.slice(1).join("/");const obj=await env.IMAGES.get(key);if(!obj)return new Response("Not found",{status:404});const headers=new Headers();obj.writeHttpMetadata(headers);headers.set("Cache-Control","public, max-age=86400, s-maxage=604800");headers.set("ETag",obj.httpEtag);const response=new Response(obj.body,{headers});if(waitUntil)waitUntil(cache.put(request,response.clone()));return response;}
  if(parts[0]==="admin"&&parts[1]==="login"&&method==="POST"){const body=await request.json();if(!env.ADMIN_PASSWORD||!env.SESSION_SECRET)return json({error:"Admin secrets are not configured."},503);if(typeof body.password!=="string"||body.password!==env.ADMIN_PASSWORD)return json({error:"بيانات الدخول غير صحيحة."},401);const payload=b64url(enc.encode(JSON.stringify({exp:Date.now()+8*60*60*1000})));const token=payload+"."+await sign(payload,env.SESSION_SECRET);return new Response(JSON.stringify({ok:true}),{headers:{"Content-Type":"application/json","Set-Cookie":cookie(token,28800),"Cache-Control":"no-store"}});}
  if(parts[0]==="admin"&&parts[1]==="logout"&&method==="POST")return new Response(JSON.stringify({ok:true}),{headers:{"Content-Type":"application/json","Set-Cookie":cookie("",0)}});
  const admin=await requireAdmin(request,env);
