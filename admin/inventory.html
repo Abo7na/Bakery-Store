@@ -14,7 +14,7 @@
 <header class="admin-page-head"><div><span class="eyebrow">إدارة المواد الأولية</span><h1>مخزون المواد الأولية</h1><p>تابع الطحين والسكر والزبدة والزيوت والجبن وغيرها من المواد المستخدمة في الإنتاج.</p></div></header>
 <section class="inventory-stats">
 <button type="button" class="inventory-stat" data-target="materialsSection"><span>عدد المواد الأولية</span><b id="inventoryProducts">0</b><small>عرض المواد</small></button>
-<button type="button" class="inventory-stat" data-target="materialsSection"><span>إجمالي الكميات</span><b id="inventoryUnits">0</b><small>حسب وحدات القياس</small></button>
+<button type="button" class="inventory-stat" data-target="movementsSection"><span>حركات المخزون</span><b id="inventoryMovementsTotal">0</b><small>عرض سجل الحركات</small></button>
 <button type="button" class="inventory-stat" data-target="lowSection"><span>مواد منخفضة المخزون</span><b id="inventoryLow">0</b><small>عرض المواد المنخفضة</small></button>
 <button type="button" class="inventory-stat" data-target="outSection"><span>مواد نافدة</span><b id="inventoryOut">0</b><small>عرض المواد النافدة</small></button>
 </section>
@@ -45,7 +45,7 @@
 </section>
 <section class="admin-card" id="lowSection"><div class="inventory-section-head"><h2>المواد منخفضة المخزون</h2></div><div id="inventoryLowList" class="inventory-product-list"></div></section>
 <section class="admin-card" id="outSection"><div class="inventory-section-head"><h2>المواد النافدة</h2></div><div id="inventoryOutList" class="inventory-product-list"></div></section>
-<section class="admin-card">
+<section class="admin-card" id="movementsSection">
 <div class="inventory-section-head"><div><h2>سجل حركة المواد الأولية</h2><small id="movementCount">0 حركة</small></div><select id="movementFilter"><option value="all">كل الحركات</option><option value="add">توريد</option><option value="remove">سحب</option><option value="set">تسوية</option></select></div>
 <div id="inventoryMovements" class="inventory-movements"></div>
 </section>
