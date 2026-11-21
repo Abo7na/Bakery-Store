@@ -1,13 +1,28 @@
 function renderAdmin(){
  $("#adminProducts").innerHTML=state.products.map(p=>'<div class="admin-item"><span>'+esc(p.name)+' · '+money(p.price)+' · '+esc(p.category)+'</span><div class="admin-item-actions"><button type="button" data-edit="'+esc(p.id)+'">تعديل</button><button type="button" class="danger-text" data-delete="'+esc(p.id)+'">حذف</button></div></div>').join("")||"لم تتم إضافة منتجات.";
- $("#adminOrders").innerHTML=state.orders.map(o=>'<div class="admin-item"><span>#'+esc(o.id)+' · '+esc(o.customer)+' · '+money(o.total)+'</span><b>'+esc(o.status)+'</b></div>').join("")||"لا توجد طلبات بعد.";
+ $("#adminOrders").innerHTML=state.orders.map(o=>{
+  const items=(o.items||[]).map(i=>'<li>'+esc(i.name)+' × '+i.qty+' — '+money(i.price*i.qty)+'</li>').join("");
+  const created=o.createdAt?new Date(o.createdAt).toLocaleString("ar-SY"):"غير متوفر";
+  const status=esc(o.status||"بانتظار موافقة الإدارة");
+  const details='<div class="order-card"><div class="order-card-head"><b>'+esc(o.id)+'</b><span class="order-status">'+status+'</span></div><div class="order-meta">تاريخ الطلب: '+esc(created)+'</div><div class="order-details"><p><b>العميل:</b> '+esc(o.customer||"لم يذكر اسمه")+'</p><p><b>الهاتف:</b> '+esc(o.phone)+'</p><p><b>طريقة الاستلام:</b> '+(o.fulfillment==="delivery"?"توصيل":"استلام من المخبز")+'</p><p><b>العنوان:</b> '+esc(o.address)+'</p><p><b>الموعد الذي طلبه الزبون:</b> '+esc(o.requestedTime||o.time||"لم يحدد")+'</p><p><b>الدفع:</b> '+(o.payment==="sham"?"شام كاش":"نقداً / دفع يدوي")+'</p>'+(o.transaction?'<p><b>رقم عملية شام كاش:</b> '+esc(o.transaction)+'</p>':"")+(o.notes?'<p><b>ملاحظات:</b> '+esc(o.notes)+'</p>':"")+'<b>تفاصيل المنتجات:</b><ul>'+items+'</ul><p>المجموع الفرعي: '+money(o.subtotal)+'</p><p>رسوم التوصيل: '+money(o.delivery)+'</p><p class="order-total">الإجمالي: '+money(o.total)+'</p></div>';
+  if(o.status==="بانتظار موافقة الإدارة"||o.status==="طلب تجريبي"){
+   return details+'<div class="order-actions"><label>موعد التسليم الذي ستحدده الإدارة<input type="datetime-local" data-schedule="'+esc(o.id)+'"></label><button type="button" class="primary" data-accept="'+esc(o.id)+'">قبول الطلب</button><label>سبب الرفض<select data-reason="'+esc(o.id)+'"><option value="">اختر سبب الرفض</option><option value="المحل مغلق">المحل مغلق</option><option value="عدم توفر المنتج">عدم توفر المنتج</option></select></label><button type="button" class="danger" data-reject="'+esc(o.id)+'">رفض الطلب</button></div></div>';
+  }
+  return details+(o.status==="مقبول"?'<p class="order-result">موعد التسليم المعتمد: <b>'+esc(o.scheduledAt?new Date(o.scheduledAt).toLocaleString("ar-SY"):"غير محدد")+'</b></p>':'<p class="order-result">سبب الرفض: <b>'+esc(o.rejectionReason||"غير محدد")+'</b></p>')+'</div>';
+ }).join("")||'<div class="empty">لا توجد طلبات بعد.</div>';
  $("#statProducts").textContent=state.products.length;$("#statOrders").textContent=state.orders.length;
- $("#statSales").textContent=money(state.orders.reduce((a,o)=>a+o.total,0));
+ $("#statSales").textContent=money(state.orders.filter(o=>o.status==="مقبول").reduce((a,o)=>a+Number(o.total||0),0));
 }
 function tab(name){activeTab=name;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("hidden",x.id!==name));document.querySelectorAll(".admin-nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===name))}
 function openAdmin(){const ok=confirm("هذه لوحة إدارة تجريبية على هذا المتصفح فقط. لا تستخدمها لاستقبال طلبات حقيقية قبل ربط قاعدة البيانات وتأمين الدخول. هل تريد المتابعة؟");if(!ok)return;$("#storeView").classList.add("hidden");$("#adminView").classList.remove("hidden");$("#settingsForm").elements.shopName.value=state.settings.shop_name;$("#settingsForm").elements.delivery.value=state.settings.delivery_fee;$("#settingsForm").elements.sham.value=state.settings.sham_cash;renderAdmin();tab(activeTab);window.scrollTo(0,0)}
 $("#adminBtn").onclick=openAdmin;$("#backStore").onclick=()=>{$("#adminView").classList.add("hidden");$("#storeView").classList.remove("hidden");window.scrollTo(0,0)};
 $(".admin-nav").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(b){tab(b.dataset.tab);renderAdmin()}});
+$("#adminOrders").addEventListener("click",e=>{
+ const accept=e.target.closest("[data-accept]");
+ if(accept){const order=state.orders.find(o=>o.id===accept.dataset.accept);if(!order)return;const input=$("#adminOrders").querySelector('[data-schedule="'+CSS.escape(order.id)+'"]');if(!input||!input.value){alert("حدد موعد التسليم قبل قبول الطلب.");input?.focus();return}if(!confirm("تأكيد قبول الطلب "+order.id+" وتحديد موعد التسليم؟"))return;order.status="مقبول";order.scheduledAt=input.value;order.customerNotice="تم قبول طلبك رقم "+order.id+". موعد التسليم: "+new Date(input.value).toLocaleString("ar-SY");save();renderAdmin();alert("تم قبول الطلب وحفظ موعد التسليم. سيظهر التحديث محلياً؛ الإشعار الفعلي للزبون يتطلب ربط الخادم.");return}
+ const reject=e.target.closest("[data-reject]");
+ if(reject){const order=state.orders.find(o=>o.id===reject.dataset.reject);if(!order)return;const select=$("#adminOrders").querySelector('[data-reason="'+CSS.escape(order.id)+'"]');if(!select||!select.value){alert("اختر سبب رفض الطلب أولاً.");select?.focus();return}if(!confirm("تأكيد رفض الطلب "+order.id+" بسبب: "+select.value+"؟"))return;order.status="مرفوض";order.rejectionReason=select.value;order.customerNotice="نعتذر، تم رفض طلبك رقم "+order.id+". السبب: "+select.value;save();renderAdmin();alert("تم رفض الطلب وحفظ سبب الرفض. الإشعار الفعلي للزبون يتطلب ربط الخادم.");}
+});
 let editingProductId=null;
 const productForm=$("#productForm"),categorySelect=$("#categorySelect"),customCategoryField=$("#customCategoryField"),customCategoryInput=$("#customCategory");
 function syncCustomCategory(){const custom=categorySelect.value==="__custom__";customCategoryField.classList.toggle("hidden",!custom);customCategoryInput.required=custom;if(!custom)customCategoryInput.value=""}
@@ -15,47 +30,19 @@ function resetProductForm(){editingProductId=null;productForm.reset();categorySe
 categorySelect.addEventListener("change",syncCustomCategory);
 $("#cancelProductEdit").addEventListener("click",resetProductForm);
 productForm.onsubmit=e=>{
- e.preventDefault();
- const f=new FormData(productForm),file=f.get("image");
+ e.preventDefault();const f=new FormData(productForm),file=f.get("image");
  const category=categorySelect.value==="__custom__"?String(f.get("customCategory")||"").trim():categorySelect.value;
  if(!category){alert("يرجى اختيار التصنيف أو كتابة اسم تصنيف جديد.");return}
  const existing=editingProductId?state.products.find(p=>p.id===editingProductId):null;
  if(editingProductId&&!existing){alert("تعذر العثور على المنتج. حدّث القائمة وحاول مجدداً.");resetProductForm();return}
  if(editingProductId&&!confirm("هل تريد حفظ التعديلات على هذا المنتج؟"))return;
- const apply=image=>{
-  const data={name:String(f.get("name")).trim(),category,price:Number(f.get("price")),description:String(f.get("description")||""),image:image||(existing?existing.image:"assets/croissant.svg")};
-  if(existing)Object.assign(existing,data);else state.products.unshift({id:"p"+Date.now(),...data});
-  save();resetProductForm();render();renderAdmin();alert(existing?"تم تعديل المنتج وحفظ التغييرات محلياً.":"تمت إضافة المنتج وحفظه محلياً.");
- };
- if(file&&file.size){
-  if(file.size>1200000){alert("اختر صورة أصغر من 1.2MB لتناسب التخزين المحلي التجريبي.");return}
-  const reader=new FileReader();reader.onload=()=>apply(reader.result);reader.onerror=()=>alert("تعذرت قراءة الصورة. حاول اختيارها مجدداً.");reader.readAsDataURL(file);
- }else apply("");
+ const apply=image=>{const data={name:String(f.get("name")).trim(),category,price:Number(f.get("price")),description:String(f.get("description")||""),image:image||(existing?existing.image:"assets/croissant.svg")};if(existing)Object.assign(existing,data);else state.products.unshift({id:"p"+Date.now(),...data});save();resetProductForm();render();renderAdmin();alert(existing?"تم تعديل المنتج وحفظ التغييرات محلياً.":"تمت إضافة المنتج وحفظه محلياً.")};
+ if(file&&file.size){if(file.size>1200000){alert("اختر صورة أصغر من 1.2MB لتناسب التخزين المحلي التجريبي.");return}const reader=new FileReader();reader.onload=()=>apply(reader.result);reader.onerror=()=>alert("تعذرت قراءة الصورة. حاول اختيارها مجدداً.");reader.readAsDataURL(file)}else apply("");
 };
 $("#adminProducts").addEventListener("click",e=>{
  const edit=e.target.closest("[data-edit]");
- if(edit){
-  const p=state.products.find(x=>x.id===edit.dataset.edit);if(!p)return;
-  resetProductForm();editingProductId=p.id;
-  productForm.elements.name.value=p.name;productForm.elements.price.value=p.price;productForm.elements.description.value=p.description||"";
-  const known=[...categorySelect.options].some(o=>o.value===p.category);
-  if(known){categorySelect.value=p.category;syncCustomCategory()}
-  else{categorySelect.value="__custom__";syncCustomCategory();customCategoryInput.value=p.category}
-  $("#productSubmit").textContent="حفظ التعديلات";$("#cancelProductEdit").classList.remove("hidden");
-  productForm.scrollIntoView({behavior:"smooth",block:"start"});return;
- }
- const del=e.target.closest("[data-delete]");if(!del)return;
- const p=state.products.find(x=>x.id===del.dataset.delete);if(!p)return;
- if(confirm('هل أنت متأكد من حذف المنتج "'+p.name+'"؟ لا يمكن التراجع عن هذه الخطوة.')){
-  state.products=state.products.filter(x=>x.id!==p.id);delete state.cart[p.id];save();render();renderAdmin();
-  if(editingProductId===p.id)resetProductForm();
- }
+ if(edit){const p=state.products.find(x=>x.id===edit.dataset.edit);if(!p)return;resetProductForm();editingProductId=p.id;productForm.elements.name.value=p.name;productForm.elements.price.value=p.price;productForm.elements.description.value=p.description||"";const known=[...categorySelect.options].some(o=>o.value===p.category);if(known){categorySelect.value=p.category;syncCustomCategory()}else{categorySelect.value="__custom__";syncCustomCategory();customCategoryInput.value=p.category}$("#productSubmit").textContent="حفظ التعديلات";$("#cancelProductEdit").classList.remove("hidden");productForm.scrollIntoView({behavior:"smooth",block:"start"});return}
+ const del=e.target.closest("[data-delete]");if(!del)return;const p=state.products.find(x=>x.id===del.dataset.delete);if(!p)return;if(confirm('هل أنت متأكد من حذف المنتج "'+p.name+'"؟ لا يمكن التراجع عن هذه الخطوة.')){state.products=state.products.filter(x=>x.id!==p.id);delete state.cart[p.id];save();render();renderAdmin();if(editingProductId===p.id)resetProductForm()}
 });
-$("#deleteAllProducts").addEventListener("click",()=>{
- if(!state.products.length){alert("لا توجد منتجات لحذفها.");return}
- if(confirm("تحذير: هل أنت متأكد من حذف جميع المنتجات وعددها "+state.products.length+"؟ سيتم إفراغ السلة من هذه المنتجات ولا يمكن التراجع عن الحذف.")){
-  const removedIds=new Set(state.products.map(p=>p.id));state.products=[];for(const id of removedIds)delete state.cart[id];
-  save();resetProductForm();render();renderAdmin();alert("تم حذف جميع المنتجات.");
- }
-});
+$("#deleteAllProducts").addEventListener("click",()=>{if(!state.products.length){alert("لا توجد منتجات لحذفها.");return}if(confirm("تحذير: هل أنت متأكد من حذف جميع المنتجات وعددها "+state.products.length+"؟ سيتم إفراغ السلة من هذه المنتجات ولا يمكن التراجع عن الحذف.")){const removedIds=new Set(state.products.map(p=>p.id));state.products=[];for(const id of removedIds)delete state.cart[id];save();resetProductForm();render();renderAdmin();alert("تم حذف جميع المنتجات.")}});
 $("#settingsForm").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);state.settings={shop_name:String(f.get("shopName")||"مخبوزات الشام"),delivery_fee:Math.max(0,Number(f.get("delivery"))||0),sham_cash:String(f.get("sham")||"")};save();render();syncPaymentField();alert("تم حفظ الإعدادات على هذا الجهاز.")};
