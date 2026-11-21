@@ -4,7 +4,8 @@ const escValue=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":
 const formatMoney=value=>new Intl.NumberFormat("ar-SY",{maximumFractionDigits:0}).format(Math.round(Number(value)||0))+" ل.س";
 function renderDashboard(){
 const data=readStore(),orders=data.orders,products=data.products,directSales=data.directSales;
-const salesRecords=[...orders.filter(o=>!["مرفوض","مرفوضة","rejected"].includes(String(o.status||"").trim())),...directSales];\nconst rejected=o=>["مرفوض","مرفوضة","rejected"].includes(String(o.status||"").trim());
+const salesRecords=[...orders.filter(o=>!["مرفوض","مرفوضة","rejected"].includes(String(o.status||"").trim())),...directSales];
+const rejected=o=>["مرفوض","مرفوضة","rejected"].includes(String(o.status||"").trim());
 const completed=o=>["تم التسليم","مكتمل","مكتملة","delivered","completed"].includes(String(o.status||"").trim());
 const stageOf=o=>{const s=String(o.status||"").trim();if(rejected(o))return"rejected";if(completed(o))return"delivered";if(["قيد التوصيل","خرج للتوصيل","out_for_delivery","delivery"].includes(s))return"delivery";if(["جاهز للاستلام","جاهز","جاهزة","ready"].includes(s))return["delivery","deliver","دليفري","توصيل","توصيل للمنزل"].includes(String(o.fulfillment||"").trim().toLowerCase())?"delivery":"ready";if(["قيد التنفيذ","مقبول","processing","accepted","in_progress"].includes(s))return"progress";return"pending"};const salesOrders=orders.filter(o=>!rejected(o)),sales=salesRecords.reduce((sum,o)=>sum+Number(o.total||0),0),active=orders.filter(o=>["progress","ready","delivery"].includes(stageOf(o))),pending=orders.filter(o=>stageOf(o)==="pending");
 const set=(selector,value)=>{const node=document.querySelector(selector);if(node)node.textContent=value};
