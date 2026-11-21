@@ -61,3 +61,33 @@
   .sale-stock{font-size:10px}
   .product-counter button{width:32px;height:32px}
 }
+
+
+/* Each horizontal swipe contains a page of six compact product cards */
+@media(max-width:560px){
+  .sales-products{
+    grid-auto-flow:column;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:repeat(3,minmax(112px,auto));
+    grid-auto-columns:100%;
+    grid-auto-rows:auto;
+    gap:8px 9px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    scroll-padding-inline:0;
+  }
+  .sale-product-card{
+    min-height:112px;
+    padding:9px;
+    scroll-snap-align:start;
+  }
+  .sale-card-info{gap:2px}
+  .sale-card-info h3{font-size:12px;line-height:1.35}
+  .sale-card-info strong{font-size:13px}
+  .sale-stock{font-size:9px}
+  .sale-card-bottom{margin-top:6px;padding-top:5px}
+  .product-counter{gap:7px}
+  .product-counter button{width:27px;height:27px;font-size:17px}
+  .product-counter b{font-size:14px;min-width:16px}
+}
