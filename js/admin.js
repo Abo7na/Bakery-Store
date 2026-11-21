@@ -5,35 +5,40 @@ function renderAdmin(){
  $("#statSales").textContent=money(state.orders.filter(o=>["قيد التنفيذ","جاهز للاستلام","قيد التوصيل","تم التسليم","مقبول"].includes(o.status)).reduce((a,o)=>a+Number(o.total||0),0));
 }
 let orderStage="all",orderAge="all",orderSearch="";
-function orderStageFor(o){if(o.status==="بانتظار موافقة الإدارة"||o.status==="طلب تجريبي")return "pending";if(o.status==="مرفوض")return "rejected";if(o.status==="تم التسليم")return "delivered";if(o.status==="قيد التوصيل")return "delivery";if(o.status==="جاهز للاستلام")return "ready";if(["قيد التنفيذ","مقبول"].includes(o.status))return "progress";return "pending"}
-function isDeliveryOrder(o){return ["delivery","دليفري","توصيل"].includes(String(o.fulfillment||"").trim().toLowerCase())}
-function orderStageFor(o){if(o.status==="بانتظار موافقة الإدارة"||o.status==="طلب تجريبي")return "pending";if(o.status==="مرفوض")return "rejected";if(o.status==="تم التسليم")return "delivered";if(o.status==="قيد التوصيل")return "delivery";if(o.status==="جاهز للاستلام")return "ready";if(["قيد التنفيذ","مقبول"].includes(o.status))return "progress";return "pending"}
+function orderStageFor(o){
+ const s=String(o.status||"");
+ if(s==="بانتظار موافقة الإدارة"||s==="طلب تجريبي")return "pending";
+ if(s==="مرفوض")return "rejected";
+ if(s==="تم التسليم")return "delivered";
+ if(s==="قيد التوصيل")return "delivery";
+ if(s==="جاهز للاستلام")return "ready";
+ if(["قيد التنفيذ","مقبول"].includes(s))return "progress";
+ return "pending";
+}
+function isDeliveryOrder(o){return ["delivery","دليفري","توصيل"].includes(String(o.fulfillment||"").trim().toLocaleLowerCase())}
 function renderOrders(){
  const root=$("#adminOrders");if(!root)return;
  const sorted=[...state.orders].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
- const counts={all:sorted.length,pending:0,progress:0,ready:0,delivery:0,delivered:0,rejected:0};
- sorted.forEach(o=>counts[orderStageFor(o)]++);
  const now=Date.now(),day=86400000;
  const filtered=sorted.filter(o=>{
-  const stage=orderStageFor(o),created=new Date(o.createdAt||0).getTime();
+  const stage=orderStageFor(o),created=new Date(o.createdAt||0).getTime(),q=orderSearch.trim().toLocaleLowerCase();
   const ageOk=orderAge==="all"||(orderAge==="new"&&now-created<=day)||(orderAge==="old"&&now-created>day)||(orderAge==="finished"&&["rejected","delivered"].includes(stage));
-  const q=orderSearch.trim().toLocaleLowerCase();
-  return (orderStage==="all"||stage===orderStage)&&ageOk&&(!q||[o.id,o.customer,o.phone].some(v=>String(v||"").toLocaleLowerCase().includes(q)))
+  return (orderStage==="all"||stage===orderStage)&&ageOk&&(!q||[o.id,o.customer,o.phone].some(v=>String(v||"").toLocaleLowerCase().includes(q)));
  });
- const stageNames={pending:"بانتظار الموافقة",progress:"قيد التنفيذ",ready:"جاهزة للاستلام",delivery:"قيد التوصيل",delivered:"تم التسليم",rejected:"مرفوض"};
- root.innerHTML='<div class="orders-overview-strip">'+Object.entries(stageNames).map(([key,label])=>'<button type="button" class="orders-stat '+(orderStage===key?"active":"")+'" data-order-stage="'+key+'"><b>'+counts[key]+'</b><span>'+label+'</span></button>').join("")+'</div><div class="orders-count">عرض '+filtered.length+' من '+sorted.length+' طلب · مرتبة من الأحدث إلى الأقدم</div><div class="orders-table-head"><span>رقم الطلب / الزبون</span><span>التاريخ</span><span>النوع</span><span>الإجمالي</span><span>الحالة</span></div>'+ (filtered.map(o=>{
-  const stage=orderStageFor(o),created=o.createdAt?new Date(o.createdAt).toLocaleString("ar-SY"):"غير متوفر",delivery=isDeliveryOrder(o);
-  const items=(o.items||[]).map(i=>'<li>'+esc(i.name)+' × '+i.qty+' — '+money(i.price*i.qty)+'</li>').join("");
-  const req=o.deferred&&o.requestedTime?new Date(o.requestedTime).toLocaleString("ar-SY"):"طلب فوري";
+ const names={all:"كل الطلبات",pending:"بانتظار الموافقة",progress:"قيد التنفيذ",ready:"جاهزة للاستلام",delivery:"قيد التوصيل",delivered:"تم التسليم",rejected:"الطلبات المرفوضة"};
+ root.innerHTML='<div class="orders-count">عرض <b>'+filtered.length+'</b> من '+sorted.length+' طلب · الأحدث أولاً</div>'+(filtered.map(o=>{
+  const stage=orderStageFor(o),delivery=isDeliveryOrder(o),created=o.createdAt?new Date(o.createdAt).toLocaleString("ar-SY"):"غير متوفر";
+  const items=(o.items||[]).map(i=>'<li><span>'+esc(i.name)+'</span><span>× '+i.qty+' — '+money(i.price*i.qty)+'</span></li>').join("");
   const mins=Number(o.preparationMinutes)||0;
+  const requested=o.deferred&&o.requestedTime?new Date(o.requestedTime).toLocaleString("ar-SY"):"فوري";
   let actions="";
-  if(stage==="pending")actions='<div class="order-actions"><div class="prep-control"><b>مدة التجهيز من وقت استلام الطلب</b><div class="prep-buttons"><button type="button" data-add-minutes="5" data-order="'+esc(o.id)+'">+5 دقائق</button><button type="button" data-add-minutes="10" data-order="'+esc(o.id)+'">+10 دقائق</button><button type="button" data-add-minutes="15" data-order="'+esc(o.id)+'">+15 دقيقة</button></div><p>المدة المضافة: <strong>'+mins+' دقيقة</strong></p><p>موعد التجهيز المتوقع: <strong>'+(mins?esc(new Date(new Date(o.createdAt).getTime()+mins*60000).toLocaleString("ar-SY")):"لم يحدد")+'</strong></p></div><button type="button" class="primary" data-accept="'+esc(o.id)+'">قبول الطلب</button><label>سبب الرفض<select data-reason="'+esc(o.id)+'"><option value="">اختر سبب الرفض</option><option value="المحل مغلق">المحل مغلق</option><option value="عدم توفر المنتج">عدم توفر المنتج</option></select></label><button type="button" class="danger" data-reject="'+esc(o.id)+'">رفض الطلب</button></div>';
-  else if(stage==="progress")actions='<div class="order-actions"><p>موعد التجهيز المتوقع: <b>'+esc(o.estimatedReadyAt?new Date(o.estimatedReadyAt).toLocaleString("ar-SY"):"غير محدد")+'</b></p><button type="button" class="primary" data-ready="'+esc(o.id)+'">تأكيد جاهزية الطلب</button></div>';
-  else if(stage==="ready")actions='<div class="order-actions"><p>الطلب جاهز للاستلام من المخبز.</p><button type="button" class="primary" data-delivered="'+esc(o.id)+'">تأكيد التسليم</button></div>';
-  else if(stage==="delivery")actions='<div class="order-actions"><p>الطلب في مرحلة التوصيل.</p><button type="button" class="primary" data-delivered="'+esc(o.id)+'">تأكيد إتمام التوصيل</button></div>';
-  const result=stage==="rejected"?'<p class="order-result">سبب الرفض: '+esc(o.rejectionReason||"غير محدد")+'</p>':stage==="delivered"?'<p class="order-result">تم التسليم: '+esc(o.deliveredAt?new Date(o.deliveredAt).toLocaleString("ar-SY"):"غير محدد")+'</p>':"";
-  return '<details class="order-accordion"><summary class="order-row-summary"><span class="order-cell order-id-cell"><b>'+esc(o.id)+'</b><small>'+esc(o.customer||"زبون")+' · '+esc(o.phone||"")+'</small></span><span class="order-cell order-date-cell">'+esc(created)+'</span><span class="order-cell order-type-cell">'+(delivery?"توصيل":"استلام")+'</span><span class="order-cell order-total-cell">'+money(o.total)+'</span><span class="order-cell order-status-cell"><em class="status-'+stage+'">'+esc(o.status||"بانتظار الموافقة")+'</em></span></summary><div class="order-card-body"><div class="order-detail-grid"><p><b>وقت استلام الطلب:</b> '+esc(created)+'</p><p><b>العميل:</b> '+esc(o.customer||"لم يذكر اسمه")+'</p><p><b>الهاتف:</b> '+esc(o.phone)+'</p><p><b>طريقة الاستلام:</b> '+(delivery?"توصيل":"استلام من المخبز")+'</p><p><b>العنوان:</b> '+esc(o.address)+'</p><p><b>موعد الزبون:</b> '+esc(req)+'</p><p><b>الدفع:</b> '+(o.payment==="sham"?"شام كاش":"نقداً / دفع يدوي")+'</p>'+(o.transaction?'<p><b>رقم عملية شام كاش:</b> '+esc(o.transaction)+'</p>':"")+(o.notes?'<p><b>ملاحظات:</b> '+esc(o.notes)+'</p>':"")+'</div><div class="order-items-box"><b>تفاصيل المنتجات</b><ul>'+items+'</ul><p>المجموع الفرعي: '+money(o.subtotal)+' · التوصيل: '+money(o.delivery)+'</p><p class="order-total">الإجمالي: '+money(o.total)+'</p></div>'+result+actions+'</div></details>'
- }).join("")||'<div class="empty">لا توجد طلبات في هذا القسم.</div>');
+  if(stage==="pending")actions='<div class="order-actions"><section class="prep-control"><b>وقت التجهيز</b><div class="prep-buttons"><button type="button" data-add-minutes="5" data-order="'+esc(o.id)+'">+5 دقائق</button><button type="button" data-add-minutes="10" data-order="'+esc(o.id)+'">+10 دقائق</button><button type="button" data-add-minutes="15" data-order="'+esc(o.id)+'">+15 دقيقة</button></div><small>الوقت المضاف: '+mins+' دقيقة</small></section><button type="button" class="primary" data-accept="'+esc(o.id)+'">قبول الطلب</button><label class="reject-reason">سبب الرفض<select data-reason="'+esc(o.id)+'"><option value="">اختر السبب</option><option value="المحل مغلق">المحل مغلق</option><option value="عدم توفر المنتج">عدم توفر المنتج</option></select></label><button type="button" class="danger" data-reject="'+esc(o.id)+'">رفض الطلب</button></div>';
+  if(stage==="progress")actions='<div class="order-actions"><p>موعد الجاهزية: <b>'+(o.estimatedReadyAt?esc(new Date(o.estimatedReadyAt).toLocaleString("ar-SY")):"غير محدد")+'</b></p><button type="button" class="primary" data-ready="'+esc(o.id)+'">تأكيد جاهزية الطلب</button></div>';
+  if(stage==="ready")actions='<div class="order-actions"><p>الطلب جاهز للاستلام من المخبز.</p><button type="button" class="primary" data-delivered="'+esc(o.id)+'">تأكيد التسليم</button></div>';
+  if(stage==="delivery")actions='<div class="order-actions"><p>الطلب قيد التوصيل.</p><button type="button" class="primary" data-delivered="'+esc(o.id)+'">تأكيد إتمام التوصيل</button></div>';
+  const outcome=stage==="rejected"?'<p class="order-outcome">سبب الرفض: '+esc(o.rejectionReason||"غير محدد")+'</p>':stage==="delivered"?'<p class="order-outcome">تاريخ التسليم: '+esc(o.deliveredAt?new Date(o.deliveredAt).toLocaleString("ar-SY"):"غير محدد")+'</p>':"";
+  return '<details class="order-card"><summary class="order-card-summary"><div class="order-primary-line"><b class="order-number" dir="ltr">'+esc(o.id)+'</b><span class="order-status-pill status-'+stage+'">'+names[stage]+'</span></div><div class="order-secondary-line"><span>'+esc(o.customer||"زبون")+'</span><span>'+money(o.total)+'</span></div><div class="order-tertiary-line"><span>'+esc(created)+'</span><span>'+(delivery?"توصيل":"استلام من المخبز")+'</span></div></summary><div class="order-card-content"><div class="order-info-grid"><p><b>رقم الهاتف</b><span dir="ltr">'+esc(o.phone||"—")+'</span></p><p><b>العنوان / الموقع</b><span>'+esc(o.address||"—")+'</span></p><p><b>موعد الزبون</b><span>'+esc(requested)+'</span></p><p><b>طريقة الدفع</b><span>'+(o.payment==="sham"?"شام كاش":"نقداً / دفع يدوي")+'</span></p>'+(o.transaction?'<p><b>رقم عملية الدفع</b><span dir="ltr">'+esc(o.transaction)+'</span></p>':"")+(o.notes?'<p><b>ملاحظات</b><span>'+esc(o.notes)+'</span></p>':"")+'</div><section class="order-products"><h4>تفاصيل الطلب</h4><ul>'+items+'</ul><div class="order-prices"><span>المجموع الفرعي <b>'+money(o.subtotal)+'</b></span><span>رسوم التوصيل <b>'+money(o.delivery)+'</b></span><strong>الإجمالي <b>'+money(o.total)+'</b></strong></div></section>'+outcome+actions+'</div></details>';
+ }).join("")||'<div class="orders-empty">لا توجد طلبات ضمن هذا القسم.</div>');
 }
 
 function tab(name){activeTab=name;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("hidden",x.id!==name));document.querySelectorAll(".admin-nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===name))}
