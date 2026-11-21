@@ -1,10 +1,11 @@
 (()=>{"use strict";
-const form=$("#inventoryForm"),materialForm=$("#materialForm"),editForm=$("#materialEditForm"),editSection=$("#materialEditSection"),productSelect=$("#inventoryProduct"),search=$("#inventorySearch"),filter=$("#movementFilter");
+const form=$("#inventoryForm"),materialForm=$("#materialForm"),editForm=$("#materialEditForm"),editSection=$("#materialEditSection"),productSelect=$("#inventoryProduct"),search=$("#inventorySearch"),filter=$("#movementFilter"),quantityInput=$("#inventoryQuantityInput");
 const materials=()=>Array.isArray(state.rawMaterials)?state.rawMaterials:[];
 const movements=()=>Array.isArray(state.rawMaterialMovements)?state.rawMaterialMovements:[];
 const qty=m=>Math.max(0,Number(m.quantity)||0),fmt=n=>new Intl.NumberFormat("ar-SY",{maximumFractionDigits:3}).format(n);
 const typeLabel={add:"توريد / شراء",remove:"سحب يدوي",set:"تسوية"};
-function ensureMaterials(){productSelect.innerHTML=materials().map(m=>'<option value="'+esc(m.id)+'">'+esc(m.name)+' — '+fmt(qty(m))+' '+esc(m.unit)+'</option>').join("");}
+function ensureMaterials(){const selected=productSelect.value;productSelect.innerHTML=materials().map(m=>'<option value="'+esc(m.id)+'">'+esc(m.name)+'</option>').join("");if(materials().some(m=>m.id===selected))productSelect.value=selected;updateQuantityPlaceholder()}
+function updateQuantityPlaceholder(){const m=materials().find(x=>x.id===productSelect.value);const units={"كغ":"بالكيلوغرام","غ":"بالغرام","لتر":"باللتر","مل":"بالملليلتر","قطعة":"بالقطعة"};quantityInput.placeholder=m?"أدخل الكمية "+(units[m.unit]||"("+m.unit+")"):"أدخل الكمية";}
 function materialCard(m){const n=qty(m),min=Math.max(0,Number(m.minimum)||0),status=n===0?'<span class="inventory-status out">نافدة</span>':min>0&&n<=min?'<span class="inventory-status low">مخزون منخفض</span>':'<span class="inventory-status">متوفرة</span>',currency=m.priceCurrency==="USD"?"$":"ل.س";return '<article class="inventory-product"><div><h3>'+esc(m.name)+'</h3><small>حد التنبيه: '+fmt(min)+' '+esc(m.unit)+'</small><br><small>سعر الوحدة: '+fmt(Number(m.unitPrice)||0)+' '+currency+'</small><br>'+status+'</div><div class="inventory-card-actions"><div class="inventory-quantity"><b>'+fmt(n)+'</b><span>'+esc(m.unit)+' متوفر</span></div><button type="button" class="inventory-edit-btn" data-edit-material="'+esc(m.id)+'">تعديل</button></div></article>'}
 function renderProducts(){const all=materials(),term=search.value.trim().toLowerCase(),list=all.filter(m=>m.name.toLowerCase().includes(term)),low=all.filter(m=>qty(m)>0&&Number(m.minimum)>0&&qty(m)<=Number(m.minimum)),out=all.filter(m=>qty(m)===0);
 $("#inventoryProducts").textContent=all.length;$("#inventoryMovementsTotal").textContent=movements().length;$("#inventoryLow").textContent=low.length;$("#inventoryOut").textContent=out.length;
@@ -22,6 +23,7 @@ $("#inventoryProductsList").addEventListener("click",e=>{const btn=e.target.clos
 editForm.addEventListener("submit",e=>{e.preventDefault();const f=new FormData(editForm),m=materials().find(x=>x.id===f.get("id")),name=String(f.get("name")||"").trim(),minimum=Number(f.get("minimum")),unitPrice=Number(f.get("unitPrice"));if(!m)return;if(!name||!Number.isFinite(minimum)||minimum<0||!Number.isFinite(unitPrice)||unitPrice<0)return alert("تحقق من البيانات المدخلة.");if(materials().some(x=>x.id!==m.id&&x.name.trim().toLowerCase()===name.toLowerCase()))return alert("يوجد مادة أخرى بالاسم نفسه.");m.name=name;m.unit=String(f.get("unit"));m.minimum=minimum;m.unitPrice=unitPrice;m.priceCurrency=String(f.get("priceCurrency"))==="USD"?"USD":"SYP";movements().forEach(x=>{if(x.materialId===m.id)x.materialName=m.name});save();editSection.hidden=true;render();alert("تم تعديل بيانات المادة.");});
 $("#cancelMaterialEdit").addEventListener("click",()=>{editSection.hidden=true;});
 
+productSelect.addEventListener("change",updateQuantityPlaceholder);
 search.addEventListener("input",renderProducts);filter.addEventListener("change",renderMovements);
 document.querySelectorAll(".inventory-stat[data-target]").forEach(card=>card.addEventListener("click",()=>{const target=document.getElementById(card.dataset.target);if(target){target.scrollIntoView({behavior:"smooth",block:"start"});target.setAttribute("tabindex","-1");target.focus({preventScroll:true})}}));
 render();
