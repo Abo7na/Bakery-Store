@@ -11,14 +11,16 @@
 <body class="admin-body">
 <div id="adminSidebar"></div>
 <main class="admin-main inventory-main">
-<header class="admin-page-head"><div><span class="eyebrow">إدارة المواد الأولية</span><h1>مخزون المواد الأولية</h1><p>تابع الطحين والسكر والزبدة والزيوت والجبن وغيرها من المواد المستخدمة في الإنتاج.</p></div></header>
+
 <nav class="inventory-tabs" aria-label="أقسام المخزون">
 <button type="button" class="inventory-tab active" data-inventory-tab="materials" aria-selected="true">المواد الأولية <span id="tabMaterialsCount">0</span></button>
-<button type="button" class="inventory-tab" data-inventory-tab="movements" aria-selected="false">حركات المخزون <span id="tabMovementsCount">0</span></button>
+<button type="button" class="inventory-tab" data-inventory-tab="add" aria-selected="false">إضافة مادة</button>
+<button type="button" class="inventory-tab" data-inventory-tab="supply" aria-selected="false">حركة توريد</button>
+<button type="button" class="inventory-tab" data-inventory-tab="movements" aria-selected="false">سجل الحركات <span id="tabMovementsCount">0</span></button>
 <button type="button" class="inventory-tab" data-inventory-tab="low" aria-selected="false">مواد منخفضة <span id="tabLowCount">0</span></button>
 <button type="button" class="inventory-tab" data-inventory-tab="out" aria-selected="false">مواد نافدة <span id="tabOutCount">0</span></button>
 </nav>
-<section class="admin-card inventory-tab-panel" data-inventory-panel="materials" id="newMaterialSection">
+<section class="admin-card inventory-tab-panel" data-inventory-panel="add" id="newMaterialSection">
 <h2>إضافة مادة أولية</h2>
 <form id="materialForm" class="formgrid">
 <label>اسم المادة<input name="name" required maxlength="80" placeholder="مثال: طحين"></label>
@@ -28,7 +30,7 @@
 <div class="wide form-actions"><button class="primary" type="submit">إضافة المادة</button></div>
 </form>
 </section>
-<section class="admin-card inventory-adjust-card inventory-tab-panel" data-inventory-panel="materials" id="movementFormSection">
+<section class="admin-card inventory-adjust-card inventory-tab-panel" data-inventory-panel="supply" id="movementFormSection">
 <h2>تسجيل حركة مادة أولية</h2>
 <p class="inventory-hint">سجّل شراء المواد الأولية أو السحب أو التسوية. لن تُخصم المقادير بسبب البيع إلا بعد إعداد الوصفات لاحقاً.</p>
 <form id="inventoryForm" class="formgrid">
@@ -39,7 +41,7 @@
 <div class="wide form-actions"><button class="primary" type="submit">حفظ حركة المخزون</button></div>
 </form>
 </section>
-<section class="admin-card" id="materialEditSection" hidden><h2>تعديل بيانات المادة</h2><form id="materialEditForm" class="formgrid"><input type="hidden" name="id"><label>اسم المادة<input name="name" required maxlength="80"></label><label>وحدة القياس<select name="unit" required><option value="كغ">كيلوغرام (كغ)</option><option value="غ">غرام (غ)</option><option value="لتر">لتر</option><option value="مل">ملليلتر (مل)</option><option value="قطعة">قطعة</option></select></label><label>حد التنبيه<input name="minimum" type="number" min="0" step="0.001" required></label><label>سعر الوحدة<input name="unitPrice" type="number" min="0" step="0.01" required></label><label>عملة السعر<select name="priceCurrency"><option value="SYP">ليرة سورية</option><option value="USD">دولار أمريكي</option></select></label><div class="wide form-actions"><button class="primary" type="submit">حفظ التعديلات</button><button type="button" id="cancelMaterialEdit">إلغاء</button></div></form></section><section class="admin-card inventory-tab-panel" data-inventory-panel="materials" id="materialsSection">
+<section class="admin-card inventory-tab-panel is-tab-hidden" data-inventory-panel="materials" id="materialEditSection" hidden><h2>تعديل بيانات المادة</h2><form id="materialEditForm" class="formgrid"><input type="hidden" name="id"><label>اسم المادة<input name="name" required maxlength="80"></label><label>وحدة القياس<select name="unit" required><option value="كغ">كيلوغرام (كغ)</option><option value="غ">غرام (غ)</option><option value="لتر">لتر</option><option value="مل">ملليلتر (مل)</option><option value="قطعة">قطعة</option></select></label><label>حد التنبيه<input name="minimum" type="number" min="0" step="0.001" required></label><label>سعر الوحدة<input name="unitPrice" type="number" min="0" step="0.01" required></label><label>عملة السعر<select name="priceCurrency"><option value="SYP">ليرة سورية</option><option value="USD">دولار أمريكي</option></select></label><div class="wide form-actions"><button class="primary" type="submit">حفظ التعديلات</button><button type="button" id="cancelMaterialEdit">إلغاء</button></div></form></section><section class="admin-card inventory-tab-panel" data-inventory-panel="materials" id="materialsSection">
 <div class="inventory-section-head"><div><h2>المواد الأولية</h2><small>الكميات الحالية لكل مادة ووحدة قياسها</small></div><input id="inventorySearch" type="search" placeholder="ابحث عن مادة..."></div>
 <div id="inventoryProductsList" class="inventory-product-list"></div>
 </section>
