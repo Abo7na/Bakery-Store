@@ -8,7 +8,7 @@ function ensureMaterials(){const selected=productSelect.value;productSelect.inne
 function updateQuantityPlaceholder(){const m=materials().find(x=>x.id===productSelect.value);const units={"كغ":"بالكيلوغرام","غ":"بالغرام","لتر":"باللتر","مل":"بالملليلتر","قطعة":"بالقطعة"};quantityInput.placeholder=m?"أدخل الكمية "+(units[m.unit]||"("+m.unit+")"):"أدخل الكمية";}
 function materialCard(m){const n=qty(m),min=Math.max(0,Number(m.minimum)||0),unitPrice=Math.max(0,Number(m.unitPrice)||0),totalValue=n*unitPrice,status=n===0?'<span class="inventory-status out">نافدة</span>':min>0&&n<=min?'<span class="inventory-status low">مخزون منخفض</span>':'<span class="inventory-status">متوفرة</span>',currency=m.priceCurrency==="USD"?"$":"ل.س";return '<article class="inventory-product"><div><h3>'+esc(m.name)+'</h3><small>الكمية: '+fmt(n)+' '+esc(m.unit)+'</small><br><small>سعر الوحدة: '+fmt(unitPrice)+' '+currency+'</small><br><strong class="inventory-total-value">إجمالي قيمة المخزون: '+fmt(totalValue)+' '+currency+'</strong><br><small>حد التنبيه: '+fmt(min)+' '+esc(m.unit)+'</small><br>'+status+'</div><div class="inventory-card-actions"><button type="button" class="inventory-edit-btn" data-edit-material="'+esc(m.id)+'">تعديل</button></div></article>'}
 function renderProducts(){const all=materials(),term=search.value.trim().toLowerCase(),list=all.filter(m=>m.name.toLowerCase().includes(term)),low=all.filter(m=>qty(m)>0&&Number(m.minimum)>0&&qty(m)<=Number(m.minimum)),out=all.filter(m=>qty(m)===0);
-$("#inventoryProducts").textContent=all.length;$("#inventoryMovementsTotal").textContent=movements().length;$("#inventoryLow").textContent=low.length;$("#inventoryOut").textContent=out.length;
+$("#tabMaterialsCount").textContent=all.length;$("#tabMovementsCount").textContent=movements().length;$("#tabLowCount").textContent=low.length;$("#tabOutCount").textContent=out.length;
 $("#inventoryProductsList").innerHTML=list.length?list.map(materialCard).join(""):'<div class="inventory-empty">لا توجد مواد أولية بعد. أضف أول مادة من النموذج أعلاه.</div>';
 $("#inventoryLowList").innerHTML=low.length?low.map(materialCard).join(""):'<div class="inventory-empty">لا توجد مواد منخفضة المخزون.</div>';
 $("#inventoryOutList").innerHTML=out.length?out.map(materialCard).join(""):'<div class="inventory-empty">لا توجد مواد نافدة.</div>';
@@ -25,6 +25,8 @@ $("#cancelMaterialEdit").addEventListener("click",()=>{editSection.hidden=true;}
 
 productSelect.addEventListener("change",updateQuantityPlaceholder);
 search.addEventListener("input",renderProducts);filter.addEventListener("change",renderMovements);
-document.querySelectorAll(".inventory-stat[data-target]").forEach(card=>card.addEventListener("click",()=>{const target=document.getElementById(card.dataset.target);if(target){target.scrollIntoView({behavior:"smooth",block:"start"});target.setAttribute("tabindex","-1");target.focus({preventScroll:true})}}));
+function activateInventoryTab(name){document.querySelectorAll("[data-inventory-tab]").forEach(btn=>{const active=btn.dataset.inventoryTab===name;btn.classList.toggle("active",active);btn.setAttribute("aria-selected",active?"true":"false")});document.querySelectorAll("[data-inventory-panel]").forEach(panel=>panel.classList.toggle("is-tab-hidden",panel.dataset.inventoryPanel!==name))}
+document.querySelectorAll("[data-inventory-tab]").forEach(btn=>btn.addEventListener("click",()=>activateInventoryTab(btn.dataset.inventoryTab)));
+activateInventoryTab("materials");
 render();
 })();
