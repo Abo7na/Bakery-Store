@@ -13,7 +13,7 @@ function renderOrders(){
  const filtered=sorted.filter(o=>{
   const stage=orderStageFor(o),created=new Date(o.createdAt||0).getTime();
   const stageOk=orderStage==="all"||stage===orderStage;
-  const ageOk=orderAge==="all"||(orderAge==="new"&&now-created<=day)||(orderAge==="old"&&now-created>day)||(orderAge==="finished"&&["finished","delivered"].includes(stage));
+  const ageOk=orderAge==="all"||(orderAge==="new"&&now-created<=day)||(orderAge==="old"&&now-created>day)||(orderAge==="finished"&&["rejected","delivered"].includes(stage));
   const q=orderSearch.trim().toLocaleLowerCase();
   const searchOk=!q||[o.id,o.customer,o.phone].some(v=>String(v||"").toLocaleLowerCase().includes(q));
   return stageOk&&ageOk&&searchOk
