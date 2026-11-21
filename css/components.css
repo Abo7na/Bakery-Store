@@ -64,3 +64,17 @@ input:focus,select:focus,textarea:focus{outline:2px solid #a65c3b55;border-color
 #adminOrders .prep-control{padding:14px;border:1px solid #eee4d8;border-radius:9px}
 #adminOrders .order-result{margin-top:12px;padding:12px;line-height:1.8}
 @media(max-width:520px){.orders-page-head{align-items:flex-start}.orders-page-head h3{font-size:20px}.orders-sort-label{font-size:10px}#ordersAdmin .orders-toolbar{top:4px;padding:9px;margin-bottom:13px}#adminOrders .order-accordion summary{padding:13px;gap:8px}#adminOrders .order-card-body{padding:13px;font-size:13px}#adminOrders .order-card-body .order-actions{grid-template-columns:1fr}}
+
+/* Single compact search bar and expandable order sections */
+#ordersAdmin .orders-toolbar{position:relative;top:auto;z-index:4;background:#fffdf9;padding:12px;margin:0 0 16px;border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 14px #3825130a}
+#ordersAdmin .orders-toolbar input{min-height:44px;font-size:14px}
+#ordersAdmin .order-filter-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#ordersAdmin .order-filter-row>select,#ordersAdmin .orders-section-menu>summary{min-height:44px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;font:inherit;font-size:13px;color:inherit;display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none}
+#ordersAdmin .orders-section-menu{position:relative;min-width:0}
+#ordersAdmin .orders-section-menu>summary::-webkit-details-marker{display:none}
+#ordersAdmin .orders-section-menu>summary:after{content:"⌄";font-size:18px}
+#ordersAdmin .orders-section-menu[open]>summary{border-color:var(--accent)}
+#ordersAdmin .orders-section-options{position:absolute;top:calc(100% + 6px);right:0;left:0;z-index:20;background:#fff;border:1px solid var(--line);border-radius:9px;padding:6px;box-shadow:0 12px 28px #24170f20;display:grid;gap:3px;max-height:55vh;overflow:auto}
+#ordersAdmin .orders-section-options button{background:transparent;border:0;text-align:right;padding:11px 10px;border-radius:6px;font:inherit;font-size:13px;color:inherit}
+#ordersAdmin .orders-section-options button:hover,#ordersAdmin .orders-section-options button:focus{background:var(--cream)}
+@media(max-width:520px){#ordersAdmin .order-filter-row{grid-template-columns:1fr}#ordersAdmin .orders-toolbar{padding:10px}}
