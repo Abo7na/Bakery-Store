@@ -1,1 +1,43 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>الطلبات | مخبوزات الشام</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="../css/base.css"><link rel="stylesheet" href="../css/admin/layout.css"><link rel="stylesheet" href="../css/admin/orders.css"></head><body class="admin-body"><div id="adminSidebar"></div><main class="admin-main"><header class="admin-page-head"><div><span class="eyebrow">متابعة الطلبات</span><h1>الطلبات</h1><p>افتح الطلب لمراجعة تفاصيله وتحديث حالته.</p></div><span class="orders-sort-label">الأحدث أولاً</span></header><details class="orders-sidebar" id="ordersSidebar"><summary>البحث والفلترة وأقسام الطلبات</summary><div class="orders-sidebar-content"><label>البحث<input id="orderSearch" type="search" placeholder="رقم الطلب أو اسم الزبون أو الهاتف"></label><label>الفترة<select id="orderAgeFilter"><option value="all">كل الفترات</option><option value="new">الحديثة — آخر 24 ساعة</option><option value="old">القديمة — أكثر من 24 ساعة</option><option value="finished">المنتهية</option></select></label><div class="orders-sidebar-sections"><b>الأقسام</b><button type="button" data-order-stage="all">كل الطلبات</button><button type="button" data-order-stage="pending">بانتظار الموافقة</button><button type="button" data-order-stage="progress">قيد التنفيذ</button><button type="button" data-order-stage="ready">جاهزة للاستلام</button><button type="button" data-order-stage="delivery">قيد التوصيل</button><button type="button" data-order-stage="delivered">تم التسليم</button><button type="button" data-order-stage="rejected">مرفوضة</button></div></div></details><div id="adminOrders" class="admin-orders-list"></div></main><script src="../js/core.js"></script><script src="../js/admin/navigation.js"></script><script src="../js/admin/orders.js"></script></body></html>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الطلبات | مخبوزات الشام</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/admin/layout.css">
+<link rel="stylesheet" href="../css/admin/orders.css">
+</head>
+<body class="admin-body">
+<div id="adminSidebar"></div>
+<main class="admin-main">
+<header class="orders-head">
+<h1 id="ordersTitle">كل الطلبات</h1>
+<div class="orders-tools">
+<details class="orders-tool">
+<summary aria-label="البحث" title="البحث"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></summary>
+<div class="orders-tool-panel"><input id="orderSearch" type="search" placeholder="رقم الطلب أو الاسم أو الهاتف"></div>
+</details>
+<details class="orders-tool">
+<summary aria-label="الفلترة" title="الفلترة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.3 7.2v5.1l-3.4 1.8v-6.9z"></path></svg></summary>
+<div class="orders-tool-panel"><label for="orderAgeFilter">الفترة</label><select id="orderAgeFilter"><option value="all">كل الفترات</option><option value="new">آخر 24 ساعة</option><option value="old">أكثر من 24 ساعة</option><option value="finished">المنتهية</option></select></div>
+</details>
+</div>
+</header>
+<nav class="orders-tabs" aria-label="أقسام الطلبات">
+<a href="orders.html?stage=all" data-order-stage="all">الكل</a>
+<a href="orders.html?stage=pending" data-order-stage="pending">بانتظار الموافقة</a>
+<a href="orders.html?stage=progress" data-order-stage="progress">قيد التنفيذ</a>
+<a href="orders.html?stage=ready" data-order-stage="ready">جاهزة للاستلام</a>
+<a href="orders.html?stage=delivery" data-order-stage="delivery">قيد التوصيل</a>
+<a href="orders.html?stage=delivered" data-order-stage="delivered">تم التسليم</a>
+<a href="orders.html?stage=rejected" data-order-stage="rejected">مرفوضة</a>
+</nav>
+<div id="adminOrders" class="admin-orders-list"></div>
+</main>
+<script src="../js/core.js"></script>
+<script src="../js/admin/navigation.js"></script>
+<script src="../js/admin/orders.js"></script>
+</body>
+</html>
