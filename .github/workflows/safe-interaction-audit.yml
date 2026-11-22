@@ -153,11 +153,15 @@ jobs:
                 rawMaterialMovements: [], settings: { shop_name: 'اختبار', usd_rate: 1000 }
               };
               await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
-              page.on('dialog', dialog => dialog.type === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
+              const saleDialogs = [], salePageErrors = [];
+              page.on('dialog', async dialog => { saleDialogs.push(dialog.type); await (dialog.type === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept()); });
+              page.on('pageerror', error => salePageErrors.push(error.message));
               const response = await page.goto(new URL('/admin/sales.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
               if (!response || response.status() >= 400) throw new Error('Sales test page failed to load');
               await page.locator('[data-return-sale="audit-sale"]').waitFor({ state: 'visible', timeout: 15000 });
+              const seedCheck = await page.evaluate(() => JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}').directSales?.some(i => i.id === 'audit-sale'));
               await page.locator('[data-return-sale="audit-sale"]').click();
+              await page.waitForTimeout(200);
               const result = await page.evaluate(() => {
                 const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
                 return {
@@ -169,7 +173,7 @@ jobs:
                 };
               });
               if (result.stock !== 5 || !result.voided || result.returnAmount !== 100 || result.refundStatus !== 'pending' || !result.movement) {
-                throw new Error('Direct-sale return regression failed: ' + JSON.stringify(result));
+                throw new Error('Direct-sale return regression failed: ' + JSON.stringify({ result, seedCheck, saleDialogs, salePageErrors }));
               }
               results.push({ test: 'Direct-sale return restores stock and records pending refund', status: 'passed' });
               await page.close();
