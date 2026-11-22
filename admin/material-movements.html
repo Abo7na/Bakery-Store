@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حركات المادة | مخبوزات الشام</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/admin/layout.css">
+<link rel="stylesheet" href="../css/admin/inventory.css">
+<link rel="stylesheet" href="../css/admin/section-system.css">
+</head>
+<body class="admin-body">
+<div id="adminSidebar"></div>
+<main class="admin-main inventory-main">
+<div class="inventory-material-profile" id="materialMovementPage">
+<div class="inventory-material-profile-head">
+<button type="button" class="outline" id="backToInventoryMovements">العودة إلى سجل الحركات</button>
+<div><h2 id="materialMovementTitle">حركات المادة</h2><p>السجل والتقارير التفصيلية لهذه المادة</p></div>
+</div>
+<div class="inventory-material-profile-summary" id="materialMovementSummary"></div>
+<nav class="inventory-material-report-tabs" aria-label="تقارير المادة">
+<button type="button" data-report-tab="all" class="active">كل الحركات</button>
+<button type="button" data-report-tab="add">التوريدات</button>
+<button type="button" data-report-tab="remove">السحوبات</button>
+<button type="button" data-report-tab="set">التسويات</button>
+</nav>
+<div class="supplier-filters inventory-material-report-filters">
+<label>بحث في التقرير<input id="materialMovementSearch" type="search" placeholder="ابحث بالسبب أو التاريخ..."></label>
+<label>من تاريخ<input id="materialReportFrom" type="date"></label>
+<label>إلى تاريخ<input id="materialReportTo" type="date"></label>
+<button type="button" class="outline" id="resetMaterialReportFilters">إعادة ضبط الفلاتر</button>
+</div>
+<div class="inventory-material-report-heading"><h3 id="materialReportHeading">السجل الكامل</h3><span id="materialReportCount">0 سجل</span></div>
+<div class="inventory-material-report-list" id="materialMovementRows"></div>
+</div>
+</main>
+<script src="../js/core.js"></script>
+<script src="../js/admin/navigation.js"></script>
+<script src="../js/admin/material-movements.js"></script>
+</body></html>
