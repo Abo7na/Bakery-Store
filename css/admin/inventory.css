@@ -213,3 +213,5 @@
 .inventory-material-report-metrics b{font-size:12px;overflow-wrap:anywhere}
 @media(max-width:520px){.inventory-material-group-card{padding:12px}.inventory-material-group-head b{font-size:14px}.inventory-material-profile-head{align-items:flex-start}.inventory-material-profile-head>div h2{font-size:18px}.inventory-material-profile-summary{gap:7px}.inventory-material-profile-summary>div{padding:9px}.inventory-material-report-filters{padding:10px;gap:8px}}
 @media(max-width:370px){.inventory-material-group-metrics,.inventory-material-profile-summary,.inventory-material-report-metrics{grid-template-columns:1fr}.inventory-material-report-filters{grid-template-columns:1fr}}
+
+.inventory-material-profile[hidden],.inventory-material-groups[hidden]{display:none!important}
