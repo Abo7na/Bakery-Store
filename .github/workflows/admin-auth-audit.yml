@@ -1,0 +1,57 @@
+name: Admin authentication audit
+
+on:
+  push:
+    branches: [security/admin-login]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  admin-auth-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check Pages Functions syntax
+        run: |
+          for file in functions/*.js functions/api/admin/*.js js/admin-login.js; do
+            node --input-type=module --check < "$file"
+          done
+      - name: Test session signing and route scope
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+
+          const source = await readFile('functions/_auth.js', 'utf8');
+          const auth = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+          const env = {
+            ADMIN_PASSWORD: 'test-admin-password-123',
+            SESSION_SECRET: 'test-session-secret-which-is-at-least-32-chars'
+          };
+
+          assert.equal(auth.isAuthConfigured(env), true);
+          assert.equal(auth.safeEqual(env.ADMIN_PASSWORD, env.ADMIN_PASSWORD), true);
+          assert.equal(auth.safeEqual('wrong-password', env.ADMIN_PASSWORD), false);
+
+          const token = await auth.createSession(env);
+          assert.equal(await auth.verifySession(token, env), true);
+          assert.equal(await auth.verifySession(token + 'x', env), false);
+          assert.match(auth.sessionCookie(token), /HttpOnly/);
+          assert.match(auth.sessionCookie(token), /Secure/);
+          assert.match(auth.sessionCookie(token), /SameSite=Strict/);
+
+          const routes = JSON.parse(await readFile('_routes.json', 'utf8'));
+          assert.deepEqual(routes.include, ['/admin', '/admin/*', '/api/admin/*']);
+
+          const header = await readFile('components/header.html', 'utf8');
+          assert.equal(/admin(?:\/|\\.html)/i.test(header), false, 'Customer header must not expose admin links');
+
+          console.log('Admin authentication checks passed.');
+          NODE
