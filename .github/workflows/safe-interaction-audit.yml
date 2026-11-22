@@ -3,7 +3,7 @@ name: Safe interaction audit
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, fix/technical-issues]
 
 permissions:
   contents: read
@@ -17,13 +17,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Start local preview of checked-out branch
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/bakery-preview.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4173/ > /dev/null
       - name: Install Playwright
         run: |
           npm install --no-save playwright
           npx playwright install --with-deps chromium
       - name: Run non-destructive interaction checks
         env:
-          SITE_URL: https://bakery-store-czu.pages.dev
+          SITE_URL: http://127.0.0.1:4173
         run: |
           mkdir -p interaction-results
           node <<'NODE'
