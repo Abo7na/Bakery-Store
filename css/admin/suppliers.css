@@ -542,3 +542,6 @@
  .supplier-report-card-metrics span{padding:7px;font-size:10px}
  .supplier-report-card-metrics b{font-size:11px}
 }
+
+
+.supplier-report-open{min-height:34px;padding:6px 10px;font:inherit;font-size:11px;margin:0 0 10px}
