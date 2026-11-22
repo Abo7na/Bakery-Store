@@ -57,3 +57,11 @@
  .suppliers-main .admin-section-head{gap:8px}
  .supplier-actions button{padding:6px 8px}
 }
+
+
+/* Supplier debts and partial payment details */
+.debt-totals{display:flex;gap:7px;flex-wrap:wrap}
+.debt-total{display:inline-flex;align-items:center;padding:6px 10px;border-radius:9px;background:#f4e7d8;color:#80513a;font-size:12px;font-weight:800}
+.debt-row>div:last-child{display:flex;align-items:flex-end;gap:8px;flex-direction:column}
+.debt-pay-btn{padding:7px 12px!important;border-radius:9px!important;font-size:12px!important;min-height:0!important}
+@media(max-width:760px){.debt-row>div:last-child{width:100%;align-items:stretch}.debt-pay-btn{align-self:flex-start}}
