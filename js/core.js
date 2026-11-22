@@ -1,12 +1,7 @@
 const $=s=>document.querySelector(s);
 const STORE_KEY="bakery_store_syp_v1";
 const defaults={
- products:[
-  {id:"p1",name:"كرواسون بالزبدة",category:"كرواسون",price:35000,description:"طبقات هشة ومخبوزة يومياً.",image:"assets/croissant.svg"},
-  {id:"p2",name:"منقوشة الزعتر",category:"مناقيش وفطائر",price:20000,description:"زعتر بلدي وزيت زيتون.",image:"assets/manoushe.svg"},
-  {id:"p3",name:"فطيرة الجبنة",category:"مناقيش وفطائر",price:28000,description:"جبنة ذائبة وعجينة ذهبية.",image:"assets/cheese.svg"},
-  {id:"p4",name:"بيتزا صغيرة",category:"بيتزا",price:40000,description:"صلصة طماطم وجبنة ومكونات طازجة.",image:"assets/pizza.svg"}
- ],
+ products:[],
  cart:{},orders:[],directSales:[],settings:{shop_name:"مخبوزات الشام",delivery_fee:5000,sham_cash:""}
 };
 let state=loadState(),category="الكل",activeTab="overview";
