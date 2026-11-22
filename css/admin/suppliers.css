@@ -101,3 +101,26 @@
 .statement-entry small{color:#897d70;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
 .statement-entry>b{white-space:nowrap}
 @media(max-width:520px){.statement-metrics{grid-template-columns:1fr}.statement-metrics>div{grid-template-columns:1fr auto;align-items:center}.statement-metrics b{font-size:14px}.statement-entry{align-items:flex-start;padding:11px}.statement-entry>b{font-size:12px}}
+
+
+.statement-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+@media print{
+ @page{size:A4;margin:14mm}
+ body.printing-supplier-statement{background:#fff!important;color:#222!important}
+ body.printing-supplier-statement #adminSidebar,
+ body.printing-supplier-statement .supplier-tabs,
+ body.printing-supplier-statement .supplier-panel:not([data-panel="statement"]),
+ body.printing-supplier-statement [data-panel="statement"] .statement-actions{display:none!important}
+ body.printing-supplier-statement .admin-main{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+ body.printing-supplier-statement [data-panel="statement"]{display:block!important;visibility:visible!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important;background:#fff!important}
+ body.printing-supplier-statement .statement-currency,
+ body.printing-supplier-statement .statement-entry{break-inside:avoid;background:#fff!important;border:1px solid #ddd!important;color:#222!important}
+ body.printing-supplier-statement .statement-metrics>div{background:#f6f6f6!important}
+ body.printing-supplier-statement .statement-entry small,
+ body.printing-supplier-statement .statement-metrics small{color:#555!important}
+ body.printing-supplier-statement .statement-entry b,
+ body.printing-supplier-statement .statement-metrics b{color:#222!important}
+ body.printing-supplier-statement .statement-ledger{gap:6px}
+ body.printing-supplier-statement .statement-entry{padding:9px 11px}
+}
+@media(max-width:520px){.statement-actions{width:100%}.statement-actions button{flex:1}}
