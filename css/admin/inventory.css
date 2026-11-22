@@ -53,3 +53,12 @@
 .inventory-tab.active span{background:#ffffff30;color:#fff}
 .inventory-tab:focus-visible{outline:2px solid #a95f3c;outline-offset:2px}
 @media(max-width:760px){.inventory-tabs{margin-top:0}}
+
+/* Match the edge-to-edge orders navigation bar */
+.inventory-tabs{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:7px 9px;margin:0 0 18px;border:1px solid #e8dfd3;border-radius:15px;background:#eee8df;scrollbar-width:none;scroll-behavior:smooth;box-shadow:none}
+.inventory-tabs::-webkit-scrollbar{display:none}
+.inventory-tab{flex:0 0 auto;display:block;min-height:0;padding:10px 15px;border:1px solid transparent;border-radius:11px;background:transparent;color:#665b50;font-size:14px;transition:background .2s ease,color .2s ease,border-color .2s ease}
+.inventory-tab span{background:#e5ddd2;color:#665b50}
+.inventory-tab.active{border-color:#e4d7c7;background:#fff;color:#29231e;font-weight:800;box-shadow:0 2px 7px #392b1b12}
+.inventory-tab.active span{background:#eee8df;color:#29231e}
+@media(max-width:760px){.inventory-tabs{gap:5px;margin:0 -13px 16px;padding:7px 10px;border-radius:0 0 13px 13px}.inventory-tab{padding:9px 12px;font-size:12px;min-height:0}}
