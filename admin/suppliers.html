@@ -47,13 +47,13 @@
 <section class="admin-card supplier-panel is-hidden" data-panel="reports">
  <div class="admin-section-head"><div><h2>تقارير الموردين والمشتريات</h2><span class="muted">ملخص مالي حسب الفترة المحددة</span></div><button class="outline" type="button" id="printSupplierReport">طباعة التقرير</button></div>
  <div class="supplier-filters report-filters">
-  <label>من تاريخ<input type="date" id="reportDateFrom"></label>
+  <label>من تاريخ<input type="date" id="reportDateFrom"></label><label>بحث باسم المورد<input type="search" id="reportSupplierSearch" placeholder="اكتب اسم المورد..."></label>
   <label>إلى تاريخ<input type="date" id="reportDateTo"></label><select id="reportSupplierFilter" aria-label="تصفية التقرير حسب المورد"><option value="all">كل الموردين</option></select><select id="reportCurrencyFilter" aria-label="تصفية التقرير حسب العملة"><option value="all">كل العملات</option><option value="USD">الدولار</option><option value="SYP">الليرة السورية</option></select>
   <button type="button" class="outline" id="resetReportDates">هذا الشهر</button>
  </div>
  <div id="reportCounts" class="report-counts"></div>
  <div id="supplierReportTotals" class="report-currency-list"></div>
- <div class="report-table-wrap"><h3>ملخص الموردين</h3><div id="supplierReportRows"></div></div>
+ <div class="report-table-wrap"><div class="admin-section-head"><h3>ملخص الموردين</h3><small id="reportSupplierResultCount" class="muted"></small></div><div id="supplierReportRows"></div></div>
  <p class="report-note">تُعرض المشتريات حسب تاريخ الفاتورة، والمرتجعات والدفعات حسب تاريخ تسجيلها، وتشمل الدفعات الفواتير الأقدم أيضاً. المتبقي والرصيد الدائن هما الرصيد الحالي لفواتير الشراء الواقعة ضمن الفترة. إذا تجاوز المدفوع صافي الفاتورة يظهر الفرق كرصيد دائن لنا. لا يتم جمع الدولار والليرة في إجمالي واحد.</p>
 </section>
 <section class="admin-card supplier-panel is-hidden" data-panel="statement"><div class="admin-section-head"><h2 id="statementTitle">ملف المورد</h2><div class="statement-actions"><button class="primary" type="button" id="printStatement">طباعة / حفظ PDF</button><button class="outline" type="button" id="backToSuppliers">العودة للموردين</button></div></div><div id="statementSummary" class="statement-summary"></div><nav class="supplier-profile-tabs" aria-label="أقسام ملف المورد"><button type="button" class="supplier-profile-tab active" data-profile-tab="all">كل الحركات</button><button type="button" class="supplier-profile-tab" data-profile-tab="invoice">الفواتير</button><button type="button" class="supplier-profile-tab" data-profile-tab="payment">الدفعات</button><button type="button" class="supplier-profile-tab" data-profile-tab="debt">الديون</button><button type="button" class="supplier-profile-tab" data-profile-tab="credit">مستحقاتنا</button><button type="button" class="supplier-profile-tab" data-profile-tab="return">المرتجعات</button><button type="button" class="supplier-profile-tab" data-profile-tab="settlement">التسويات والاستردادات</button></nav><div id="supplierProfileContent" class="supplier-profile-content"></div></section>
