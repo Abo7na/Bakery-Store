@@ -126,6 +126,7 @@ jobs:
             {
               const page = await openPage('/admin/suppliers.html');
               await checkTabs(page, '[data-tab]', '[data-panel]', 'data-tab', ['suppliers','addSupplier','newInvoice','invoices','debts','credits','returns','reports'], 'Suppliers');
+              await page.locator('[data-tab="suppliers"]').click();
               await page.locator('#supplierSearch').fill('اسم غير موجود للاختبار');
               results.push({ test: 'Supplier search input responds', status: 'passed' });
               await page.screenshot({ path: 'interaction-results/suppliers-mobile.png', fullPage: true });
