@@ -136,3 +136,23 @@
 @media(max-width:380px){
  .report-filters,.orders-filter-grid,.sales-invoice-filters,.product-filters{grid-template-columns:1fr}
 }
+
+
+/* Shared visual language for every administration section */
+:root{--section-ink:#2d261f;--section-muted:#7c7064;--section-line:#e8ded1;--section-surface:#fffdfa;--section-warm:#f6efe6;--section-accent:#a65f3d;--section-tab-bg:#eee6db}
+.admin-card,.dashboard-panel{border-color:#e8ded1;border-radius:15px;box-shadow:0 5px 22px #35261a0a;background:#fffdfa}
+.admin-section-head h2,.sales-section-head h2{letter-spacing:-.3px}
+.supplier-tabs,.supplier-profile-tabs,.inventory-tabs,.orders-tabs{background:#eee7dd;border-color:#e5dacd;border-radius:12px}
+.supplier-tab,.supplier-profile-tab,.inventory-tab,.orders-tabs a{border-radius:9px;color:#6e6256}
+.supplier-tab.active,.supplier-profile-tab.active,.inventory-tab.active,.orders-tabs a.active{background:#30271f;color:#fffaf3;border-color:#30271f;box-shadow:0 3px 9px #30271f20}
+.supplier-tab.active span,.inventory-tab.active span{background:#594535;color:#fff4e6}
+.supplier-filters,.report-filters,.orders-filter-grid,.sales-invoice-filters,.product-filters{background:#faf6f0;border-color:#ebe1d6;border-radius:12px}
+.admin-item,.order-card,.inventory-product,.sale-product-card{border-color:#e8ded1;border-radius:12px}
+.admin-item:hover{border-color:#d6bda2;background:#fffdfa}
+.admin-main button.primary{background:#30271f;border-color:#30271f}
+.admin-main button.primary:hover{background:#a65f3d;border-color:#a65f3d}
+.admin-main button.outline{border-color:#ddcdbb;background:#fffdfa}
+.admin-main button.danger{border-radius:8px}
+.admin-main input:focus,.admin-main select:focus,.admin-main textarea:focus{outline:2px solid #a65f3d35;border-color:#a65f3d}
+.admin-notice{background:#fbf4e9;border-color:#ead9c2;color:#766047}
+@media(max-width:760px){.supplier-tabs,.supplier-profile-tabs,.inventory-tabs,.orders-tabs{background:#eee7dd;border-radius:0 0 12px 12px}.admin-card{background:#fffdfa}}
