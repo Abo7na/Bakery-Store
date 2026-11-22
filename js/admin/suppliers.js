@@ -362,7 +362,7 @@ function supplierExportReportWorkbook(){
  ws["!cols"]=[{wch:22},{wch:18},{wch:18},{wch:18},{wch:18},{wch:22}];
  ws["!rows"]=rows.map((r,i)=>({hpt:i===0?38:(r.some(c=>c?.style==="section")?29:25)}));
  ws["!sheetView"]={rightToLeft:true,showGridLines:false};
- const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"تقرير الموردين");
+ const wb=XLSX.utils.book_new();wb.Workbook=wb.Workbook||{};wb.Workbook.Views=[{RTL:true}];XLSX.utils.book_append_sheet(wb,ws,"تقرير الموردين");
  XLSX.writeFile(wb,"تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xlsx",{bookType:"xlsx",compression:true});
 }
 function supplierExportExcel(){
