@@ -238,3 +238,52 @@
   .suppliers-main .supplier-filters>select{height:39px;font-size:12px}
   .suppliers-main .return-row{align-items:flex-start}
 }
+
+
+/* Supplier purchasing reports */
+.report-filters{grid-template-columns:repeat(2,minmax(0,1fr));align-items:end}
+.report-filters label{display:grid;gap:5px;min-width:0;color:#76685a;font-size:11px}
+.report-filters label input{width:100%;min-width:0;height:40px;padding:7px 9px;border:1px solid #e4d9cd;border-radius:9px;background:#fff;font:inherit;font-size:12px}
+.report-filters button{grid-column:1/-1;justify-self:start;min-height:38px}
+.report-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}
+.report-count-card{display:grid;gap:5px;padding:12px;border:1px solid #eee3d7;border-radius:12px;background:#fcf8f2}
+.report-count-card span{color:#897d70;font-size:11px}
+.report-count-card b{font-size:20px;color:#49382c}
+.report-currency-list{display:grid;gap:12px}
+.report-currency-card{padding:15px;border:1px solid #eadfd2;border-radius:14px;background:#fffaf5}
+.report-currency-card h3{margin:0 0 12px;color:#80563d;font-size:15px}
+.report-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.report-metrics>div{display:grid;gap:5px;min-width:0;padding:10px;border-radius:10px;background:#f7f0e7}
+.report-metrics small{color:#897d70;font-size:11px;line-height:1.5}
+.report-metrics b{font-size:15px;overflow-wrap:anywhere}
+.report-table-wrap{margin-top:20px}
+.report-table-wrap h3{margin:0 0 10px;color:#76563f;font-size:16px}
+.report-table-scroll{overflow-x:auto;border:1px solid #eee3d7;border-radius:12px}
+.supplier-report-table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}
+.supplier-report-table th,.supplier-report-table td{padding:11px 12px;text-align:right;border-bottom:1px solid #eee8df}
+.supplier-report-table th{background:#f7f0e7;color:#705b49;font-weight:700}
+.supplier-report-table tr:last-child td{border-bottom:0}
+.report-note{margin:14px 0 0;padding:10px 12px;border-radius:10px;background:#faf5ee;color:#897d70;font-size:11px;line-height:1.8}
+@media(max-width:600px){
+ .report-counts{gap:7px}
+ .report-count-card{padding:10px 8px}
+ .report-count-card span{font-size:10px}
+ .report-count-card b{font-size:18px}
+ .report-currency-card{padding:12px}
+ .report-metrics{gap:7px}
+ .report-metrics>div{padding:9px}
+ .report-metrics b{font-size:13px}
+ .report-filters{gap:8px;padding:9px}
+ .report-filters label input{height:38px;font-size:11px}
+}
+@media print{
+ body.printing-supplier-report #adminSidebar,
+ body.printing-supplier-report .supplier-tabs,
+ body.printing-supplier-report .supplier-panel:not([data-panel="reports"]),
+ body.printing-supplier-report #printSupplierReport,
+ body.printing-supplier-report #resetReportDates{display:none!important}
+ body.printing-supplier-report .admin-main{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+ body.printing-supplier-report [data-panel="reports"]{display:block!important;border:0!important;box-shadow:none!important;padding:0!important}
+ body.printing-supplier-report .report-currency-card,
+ body.printing-supplier-report .report-count-card{break-inside:avoid;background:#fff!important}
+}
