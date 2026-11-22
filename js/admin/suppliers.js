@@ -301,13 +301,16 @@ function supplierBuildStyledWorkbook(){
  const shop=state.settings?.shop_name||"مخبوزات أمية";
  const title=panel?.querySelector("h2")?.innerText?.trim()||"تقارير الموردين والمشتريات";
  const createdAt=new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date());
- push([shop,"","","","",""],"shop",54,true);
+ const shopWordmark=String(shop).trim().replace(/\\s+/g,"\\n");
+ const shopRow=aoa.length;
+ push([shopWordmark,"","","","","تاريخ إنشاء التقرير: "+createdAt],"shop",66,false);
+ merges.push({s:{r:shopRow,c:0},e:{r:shopRow,c:4}});
  push([title,"","","","",""],"title",42,true);
  if(isReport){
   const from=panel.querySelector("#reportDateFrom")?.value||"—";
   const to=panel.querySelector("#reportDateTo")?.value||"—";
   push(["ملخص مالي حسب الفترة المحددة","","","","",""],"subtitle",32,true);
-  push(["الفترة: "+from+" إلى "+to+"     |     تاريخ إنشاء التقرير: "+createdAt,"","","","",""],"meta",30,true);
+  push(["الفترة: "+from+" إلى "+to,"","","","",""],"meta",30,true);
   blank(20);
   push(["مؤشرات التقرير","","","","",""],"section",34,true);
   const counts=[...panel.querySelectorAll(".report-count-card")].map(x=>[x.querySelector("span")?.innerText?.trim()||"المؤشر",x.querySelector("b")?.innerText?.trim()||"0"]);
@@ -343,7 +346,6 @@ function supplierBuildStyledWorkbook(){
   const note=panel.querySelector(".report-note")?.innerText?.trim();
   if(note){push(["ملاحظات محاسبية","","","","",""],"section",34,true);push([note,"","","","",""],"note",52,true);}
  }else{
-  push(["تاريخ إنشاء التقرير: "+createdAt,"","","","",""],"meta",30,true);
   blank(12);
   const {clone}=supplierExportCleanClone(),rows=supplierExportRows(clone,title);
   rows.forEach(row=>{
@@ -363,11 +365,11 @@ function supplierBuildStyledWorkbook(){
  ws["!printOptions"]={horizontalCentered:true};
  ws["!margins"]={left:0.25,right:0.25,top:0.4,bottom:0.4,header:0.15,footer:0.15};
  const palette={
-  shop:{font:{name:"Arial",sz:25,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2}},
+  shop:{font:{name:"Arabic Typesetting",sz:25,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2,wrapText:true}},
   title:{fill:{fgColor:{rgb:"33251E"}},font:{name:"Arial",sz:18,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2}},
   subtitle:{font:{name:"Arial",sz:14,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
-  meta:{font:{name:"Arial",sz:11,color:{rgb:"897B6D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
-  created:{font:{name:"Arial",sz:11,color:{rgb:"897B6D"},italic:true},alignment:{horizontal:"center",vertical:"center",readingOrder:2}},
+  meta:{font:{name:"Arial",sz:11,color:{rgb:"897B6D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true}},
+  created:{font:{name:"Arial",sz:9,color:{rgb:"897B6D"},italic:true},alignment:{horizontal:"center",vertical:"center",readingOrder:2,wrapText:true}},
   section:{fill:{fgColor:{rgb:"80563D"}},font:{name:"Arial",sz:14,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
   label:{fill:{fgColor:{rgb:"F1E8DE"}},font:{name:"Arial",sz:12,bold:true,color:{rgb:"624631"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E8D8C8"}}}},
   kpi:{fill:{fgColor:{rgb:"FCF8F3"}},font:{name:"Arial",sz:18,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2}},
@@ -383,6 +385,7 @@ function supplierBuildStyledWorkbook(){
    const ref=XLSX.utils.encode_cell({r,c});
    if(!ws[ref])ws[ref]={t:"s",v:""};
    ws[ref].s=palette[meta.kind]||palette.data;
+   if(r===shopRow&&c===5)ws[ref].s=palette.created;
   }
  });
  const wb=XLSX.utils.book_new();
