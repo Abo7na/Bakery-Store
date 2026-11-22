@@ -2,6 +2,8 @@ name: Website visual audit
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
 
@@ -21,14 +23,28 @@ jobs:
         with:
           node-version: 20
 
+      # Serve the checked-out files locally so the audit can inspect admin
+      # layouts without calling the production Pages Functions authentication
+      # middleware. Authentication is tested separately in admin-auth-audit.
+      - name: Start local preview
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/bakery-preview.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4173/ > /dev/null
+
       - name: Install Playwright
         run: |
           npm install --no-save playwright
           npx playwright install --with-deps chromium
 
-      - name: Audit published website and capture screenshots
+      - name: Audit storefront and admin layouts at desktop and mobile sizes
         env:
-          SITE_URL: https://bakery-store-czu.pages.dev
+          SITE_URL: http://127.0.0.1:4173
         run: |
           mkdir -p audit-results
           node <<'NODE'
@@ -86,11 +102,12 @@ jobs:
             fs.writeFileSync('audit-results/report.json', JSON.stringify({
               auditedAt: new Date().toISOString(),
               site: process.env.SITE_URL,
+              mode: 'local-static-preview; production authentication tested separately',
               results
             }, null, 2));
             await browser.close();
 
-            const failed = results.filter(item => item.status !== null && item.status >= 400);
+            const failed = results.filter(item => item.status === null || item.status >= 400 || item.errors.length > 0);
             console.log(JSON.stringify(results, null, 2));
             if (failed.length) process.exitCode = 1;
           })().catch(error => {
