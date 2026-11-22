@@ -305,7 +305,58 @@ function supplierZip(files){
  const body=join(locals),cd=join(centrals);
  return new Blob([body,cd,join([u32(0x06054b50),u16(0),u16(0),u16(centrals.length),u16(centrals.length),u32(cd.length),u32(body.length),u16(0)])],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
 }
+function supplierExportReportWorkbook(){
+ const panel=supplierExportPanel();
+ const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+ const rows=[];
+ const cell=(value,style="Body",merge=1)=>({value:String(value??""),style,merge});
+ const row=(...cells)=>rows.push(cells);
+ const title=panel.querySelector("h2")?.innerText?.trim()||"تقارير الموردين والمشتريات";
+ row(cell(title,"Title",6));
+ row(cell("ملخص مالي حسب الفترة المحددة","Subtitle",6));
+ row(cell("الفترة: "+(panel.querySelector("#reportDateFrom")?.value||"—")+" إلى "+(panel.querySelector("#reportDateTo")?.value||"—"),"Meta",6));
+ row();
+ const counts=[...panel.querySelectorAll(".report-count-card")];
+ if(counts.length){
+  row(cell("مؤشرات التقرير","Section",6));
+  const c=counts.map(x=>[x.querySelector("span")?.innerText||"",x.querySelector("b")?.innerText||""]);
+  row(cell(c[0]?.[0]||"فواتير الشراء","CardLabel",2),cell(c[1]?.[0]||"المرتجعات","CardLabel",2),cell(c[2]?.[0]||"الموردون","CardLabel",2));
+  row(cell(c[0]?.[1]||"0","CardValue",2),cell(c[1]?.[1]||"0","CardValue",2),cell(c[2]?.[1]||"0","CardValue",2));
+  row();
+ }
+ const currencies=[...panel.querySelectorAll(".report-currency-card")];
+ currencies.forEach(card=>{
+  row(cell("الملخص المالي — "+(card.querySelector("h3")?.innerText||""),"Section",6));
+  const metrics=[...card.querySelectorAll(".report-metrics>div")].map(x=>[x.querySelector("small")?.innerText||"",x.querySelector("b")?.innerText||""]);
+  for(let i=0;i<metrics.length;i+=2) row(cell(metrics[i]?.[0]||"","MetricLabel",2),cell(metrics[i]?.[1]||"","MetricValue",1),cell(metrics[i+1]?.[0]||"","MetricLabel",2),cell(metrics[i+1]?.[1]||"","MetricValue",1));
+  row();
+ });
+ const suppliers=[...panel.querySelectorAll(".supplier-report-card")];
+ suppliers.forEach(card=>{
+  const head=card.querySelector(".supplier-report-card-head");
+  row(cell("المورد: "+(head?.querySelector("b")?.innerText||""),"Section",5),cell(head?.querySelector("span")?.innerText||"","Currency",1));
+  const metrics=[...card.querySelectorAll(".supplier-report-card-metrics span")].map(x=>{const b=x.querySelector("b"),label=x.cloneNode(true);label.querySelector("b")?.remove();return [label.innerText.trim(),b?.innerText||""];});
+  for(let i=0;i<metrics.length;i+=2) row(cell(metrics[i]?.[0]||"","MetricLabel",2),cell(metrics[i]?.[1]||"","MetricValue",1),cell(metrics[i+1]?.[0]||"","MetricLabel",2),cell(metrics[i+1]?.[1]||"","MetricValue",1));
+  row();
+ });
+ const note=panel.querySelector(".report-note")?.innerText?.trim();
+ if(note){row(cell("ملاحظات محاسبية","Section",6));row(cell(note,"Note",6));}
+ if(rows.length<5)row(cell("لا توجد بيانات ضمن الفلاتر المحددة.","Note",6));
+ const xmlRows=rows.map((cells,i)=>{
+  let col=0;
+  const xml=(cells.length?cells:[cell("")]).map(c=>{
+   const start=col+1;col+=c.merge||1;
+   const merge=c.merge>1?' ss:MergeAcross="'+(c.merge-1)+'"':"";
+   return '<Cell ss:StyleID="'+(c.style||"Body")+'"'+merge+'><Data ss:Type="String">'+esc(c.value)+'</Data></Cell>';
+  }).join("");
+  return '<Row ss:AutoFitHeight="1">'+xml+'</Row>';
+ }).join("");
+ const xml='<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40"><Styles><Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Horizontal="Right" ss:Vertical="Center" ss:ReadingOrder="RightToLeft" ss:WrapText="1"/><Font ss:FontName="Arial" ss:Size="10" ss:Color="#33271F"/></Style><Style ss:ID="Title"><Alignment ss:Horizontal="Right" ss:Vertical="Center"/><Font ss:FontName="Arial" ss:Size="18" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#33271F" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2" ss:Color="#A87955"/></Borders></Style><Style ss:ID="Subtitle"><Font ss:FontName="Arial" ss:Size="11" ss:Color="#80563D" ss:Bold="1"/></Style><Style ss:ID="Meta"><Font ss:FontName="Arial" ss:Size="9" ss:Color="#8A8178"/></Style><Style ss:ID="Section"><Font ss:FontName="Arial" ss:Size="12" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#80563D" ss:Pattern="Solid"/></Style><Style ss:ID="CardLabel"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/><Font ss:FontName="Arial" ss:Size="10" ss:Color="#80563D" ss:Bold="1"/><Interior ss:Color="#F4EDE4" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E5D8C9"/></Borders></Style><Style ss:ID="CardValue"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/><Font ss:FontName="Arial" ss:Size="16" ss:Bold="1" ss:Color="#33271F"/><Interior ss:Color="#FBF7F1" ss:Pattern="Solid"/></Style><Style ss:ID="MetricLabel"><Font ss:FontName="Arial" ss:Size="9" ss:Color="#806F60"/><Interior ss:Color="#F5EFE7" ss:Pattern="Solid"/></Style><Style ss:ID="MetricValue"><Alignment ss:Horizontal="Center"/><Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#33271F"/><Interior ss:Color="#FCFAF7" ss:Pattern="Solid"/></Style><Style ss:ID="Currency"><Alignment ss:Horizontal="Center"/><Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#80563D"/></Style><Style ss:ID="Note"><Font ss:FontName="Arial" ss:Size="9" ss:Color="#8A8178"/><Interior ss:Color="#F8F2EA" ss:Pattern="Solid"/></Style><Style ss:ID="Body"/></Styles><Worksheet ss:Name="تقرير الموردين"><Table ss:ExpandedColumnCount="6" ss:ExpandedRowCount="'+rows.length+'" x:FullColumns="1" x:FullRows="1"><Column ss:Width="92"/><Column ss:Width="92"/><Column ss:Width="92"/><Column ss:Width="92"/><Column ss:Width="92"/><Column ss:Width="92"/>'+xmlRows+'</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><DisplayRightToLeft/><PageSetup><Layout x:Orientation="Portrait" x:CenterHorizontal="1"/></PageSetup><Print><FitWidth>1</FitWidth><FitHeight>0</FitHeight></Print><Selected/></WorksheetOptions></Worksheet></Workbook>';
+ const blob=new Blob(["\uFEFF",xml],{type:"application/vnd.ms-excel;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xls";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
+}
 function supplierExportExcel(){
+ if(supplierExportPanel()?.dataset.panel==="reports"){supplierExportReportWorkbook();return;}
  const {clone,title}=supplierExportCleanClone(),rows=supplierExportRows(clone,title);
  const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
  const col=n=>{let s="";for(;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
