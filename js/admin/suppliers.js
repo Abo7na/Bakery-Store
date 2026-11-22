@@ -34,7 +34,7 @@ function renderSupplierReport(){
   const c=x.currency||"SYP",s=state.suppliers.find(v=>v.id===x.supplierId),t=getTotal(c),row=getSupplier(x.supplierId,s?.name,c);
   currencies.add(c);t.purchases+=Number(x.total)||0;t.due+=Number(x.due)||0;
   row.purchases+=Number(x.total)||0;row.due+=Number(x.due)||0;
-  ensurePaymentHistory(x).forEach(p=>{if(p.kind==="return"||!reportInRange(p.date||x.date||x.createdAt,from,to))return;const amount=Number(p.amount)||0;t.paid+=amount;row.paid+=amount});
+  const cashPayments=(Array.isArray(x.payments)?x.payments:[]).filter(p=>p.kind!=="return");let recordedCash=0;cashPayments.forEach(p=>{const amount=Number(p.amount)||0;recordedCash+=amount;if(reportInRange(p.date||x.date||x.createdAt,from,to)){t.paid+=amount;row.paid+=amount}});const missingCash=Math.max(0,Number(x.paid||0)-recordedCash);if(missingCash>0&&reportInRange(x.date||x.createdAt,from,to)){t.paid+=missingCash;row.paid+=missingCash}
  });
  returns.forEach(r=>{
   const c=r.currency||"SYP",s=state.suppliers.find(v=>v.id===r.supplierId),t=getTotal(c),row=getSupplier(r.supplierId,s?.name,c),amount=Number(r.amount)||0;
