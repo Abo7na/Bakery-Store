@@ -177,3 +177,18 @@ input:focus,select:focus,textarea:focus{outline:2px solid #a65c3b55;border-color
 #ordersAdmin .orders-sidebar-sections button.active{border-color:var(--accent);background:var(--cream);font-weight:800}
 @media(min-width:900px){#ordersAdmin .orders-sidebar-content{grid-template-columns:1.3fr 1fr 2fr;align-items:start}#ordersAdmin .orders-sidebar-sections{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){#ordersAdmin .orders-sidebar-content{padding:11px}#ordersAdmin .orders-sidebar-sections{grid-template-columns:1fr}#ordersAdmin .orders-sidebar-sections button{min-height:44px}}
+
+
+/* Unified storefront components */
+.product img{border-bottom:1px solid #eee5da}
+.product-info{display:flex;flex-direction:column;min-height:150px}
+.product-info p{flex:1}
+.add{min-height:38px}
+.cart-row{border-bottom-color:#ece3d8}
+.qty button{border-radius:9px;background:#fff;border-color:#e7dccf;color:#6d4a35}
+.qty button:hover{border-color:var(--accent);background:#f8eee5}
+.drawer{border:1px solid #e9dfd3}
+.drawer-head{border-bottom-color:#e9dfd3}
+.checkout-summary{background:#fffdfa;border-color:#e9dfd3}
+.continue-shopping{border-radius:9px;background:#fffdfa}
+@media(max-width:650px){.mobile-nav{background:#fffdfa;border-top-color:#e9dfd3;box-shadow:0 -6px 22px #211d1814}.mobile-nav a.active,.mobile-nav button:focus{color:var(--accent)}.mobile-cart-bar{border-radius:13px;border-color:#e8ddcf;box-shadow:0 8px 26px #211d1820}.mobile-cart-bar button{border-radius:8px}}
