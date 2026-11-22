@@ -23,6 +23,8 @@ jobs:
           for file in functions/*.js functions/api/admin/*.js js/admin-login.js; do
             node --input-type=module --check < "$file"
           done
+      - name: Validate SQLite migrations
+        run: python3 scripts/check-migrations.py
       - name: Test session signing and route scope
         run: |
           node --input-type=module <<'NODE'
