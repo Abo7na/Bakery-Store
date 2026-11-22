@@ -337,13 +337,14 @@ function supplierExportReportWorkbook(){
  const note=panel.querySelector(".report-note")?.innerText?.trim();
  if(note){row(cell("ملاحظات محاسبية","section",6));row(cell(note,"note",6));}
  if(rows.length<5)row(cell("لا توجد بيانات ضمن الفلاتر المحددة.","note",6));
- const aoa=[],styles={title:{font:{name:"Arial",sz:18,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"33271F"}},alignment:{horizontal:"right",vertical:"center"}},subtitle:{font:{name:"Arial",sz:11,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right"}},meta:{font:{name:"Arial",sz:9,color:{rgb:"8A8178"}},alignment:{horizontal:"right"}},section:{font:{name:"Arial",sz:12,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},label:{font:{name:"Arial",sz:9,color:{rgb:"806F60"}},fill:{fgColor:{rgb:"F4EDE4"}},alignment:{horizontal:"right",vertical:"center",wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E5D8C9"}}}},value:{font:{name:"Arial",sz:16,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"FBF7F1"}},alignment:{horizontal:"center",vertical:"center"}},amount:{font:{name:"Arial",sz:10,bold:true,color:{rgb:"33271F"}},fill:{fgColor:{rgb:"FCFAF7"}},alignment:{horizontal:"center",vertical:"center"}},currency:{font:{name:"Arial",sz:10,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center"}},note:{font:{name:"Arial",sz:9,color:{rgb:"8A8178"}},fill:{fgColor:{rgb:"F8F2EA"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}},body:{font:{name:"Arial",sz:10,color:{rgb:"33271F"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}}};
+ const aoa=[],merges=[],styles={title:{font:{name:"Arial",sz:18,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"33271F"}},alignment:{horizontal:"right",vertical:"center"}},subtitle:{font:{name:"Arial",sz:11,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right"}},meta:{font:{name:"Arial",sz:9,color:{rgb:"8A8178"}},alignment:{horizontal:"right"}},section:{font:{name:"Arial",sz:12,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},label:{font:{name:"Arial",sz:9,color:{rgb:"806F60"}},fill:{fgColor:{rgb:"F4EDE4"}},alignment:{horizontal:"right",vertical:"center",wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E5D8C9"}}}},value:{font:{name:"Arial",sz:16,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"FBF7F1"}},alignment:{horizontal:"center",vertical:"center"}},amount:{font:{name:"Arial",sz:10,bold:true,color:{rgb:"33271F"}},fill:{fgColor:{rgb:"FCFAF7"}},alignment:{horizontal:"center",vertical:"center"}},currency:{font:{name:"Arial",sz:10,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center"}},note:{font:{name:"Arial",sz:9,color:{rgb:"8A8178"}},fill:{fgColor:{rgb:"F8F2EA"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}},body:{font:{name:"Arial",sz:10,color:{rgb:"33271F"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}}};
  rows.forEach((cells,ri)=>{
   const line=Array(6).fill(""),styleCells=Array(6).fill(null);let ci=0;
   cells.forEach(c=>{
    if(!c){ci++;return;}
    line[ci]=c.v;
    for(let k=0;k<c.span&&ci+k<6;k++)styleCells[ci+k]=c.style;
+   if(c.span>1)merges.push({s:{r:ri,c:ci},e:{r:ri,c:Math.min(5,ci+c.span-1)}});
    ci+=c.span;
   });
   aoa.push(line);
@@ -357,6 +358,7 @@ function supplierExportReportWorkbook(){
   });
  });
  ws["!ref"]="A1:F"+Math.max(1,aoa.length);
+ ws["!merges"]=merges;
  ws["!cols"]=[{wch:22},{wch:18},{wch:18},{wch:18},{wch:18},{wch:22}];
  ws["!rows"]=rows.map((r,i)=>({hpt:i===0?38:(r.some(c=>c?.style==="section")?29:25)}));
  ws["!sheetView"]={rightToLeft:true,showGridLines:false};
