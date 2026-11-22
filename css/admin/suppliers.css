@@ -124,3 +124,10 @@
  body.printing-supplier-statement .statement-entry{padding:9px 11px}
 }
 @media(max-width:520px){.statement-actions{width:100%}.statement-actions button{flex:1}}
+
+/* Purchase returns */
+.returns-history-head{display:flex;align-items:center;justify-content:space-between;margin:22px 0 12px}
+.returns-history-head h3{margin:0;font-size:16px;color:#76563f}
+.return-row{border-inline-start:3px solid #8aaf8d}
+.statement-metrics{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+@media(max-width:520px){.statement-metrics{grid-template-columns:1fr}}
