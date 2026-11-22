@@ -154,7 +154,7 @@ jobs:
               };
               await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
               const saleDialogs = [], salePageErrors = [];
-              page.on('dialog', async dialog => { saleDialogs.push(dialog.type); await (dialog.type === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept()); });
+              page.on('dialog', async dialog => { saleDialogs.push(dialog.type()); await (dialog.type() === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept()); });
               page.on('pageerror', error => salePageErrors.push(error.message));
               const response = await page.goto(new URL('/admin/sales.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
               if (!response || response.status() >= 400) throw new Error('Sales test page failed to load');
@@ -195,7 +195,7 @@ jobs:
                 rawMaterialMovements: [], settings: { shop_name: 'اختبار', delivery_fee: 0 }
               };
               await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
-              page.on('dialog', dialog => dialog.type === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
+              page.on('dialog', dialog => dialog.type() === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
               const response = await page.goto(new URL('/admin/orders.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
               if (!response || response.status() >= 400) throw new Error('Orders test page failed to load');
               await page.locator('[data-cancel-order="ORD-AUDIT"]').waitFor({ state: 'visible', timeout: 15000 });
@@ -235,7 +235,7 @@ jobs:
                 settings: { shop_name: 'اختبار', delivery_fee: 0 }
               };
               await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
-              page.on('dialog', dialog => dialog.type === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
+              page.on('dialog', dialog => dialog.type() === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
               const response = await page.goto(new URL('/admin/suppliers.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
               if (!response || response.status() >= 400) throw new Error('Supplier regression page failed to load');
               await page.locator('[data-tab="credits"]').click();
