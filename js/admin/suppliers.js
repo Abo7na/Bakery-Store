@@ -332,11 +332,12 @@ function supplierBuildStyledWorkbook(){
    x.querySelector("b")?.innerText?.trim()||"0"
   ]);
   if(counts.length){
-   const row=blankCells();
+   const labels=blankCells(),values=blankCells();
    [[0,1],[3,4],[6,7]].forEach((cols,i)=>{
-    if(counts[i]){row[cols[0]]=counts[i][0];row[cols[1]]=counts[i][1];}
+    if(counts[i]){labels[cols[0]]=counts[i][0];values[cols[1]]=counts[i][1];}
    });
-   push(row,"kpi",66);
+   push(labels,"kpiLabel",31);
+   push(values,"kpi",42);
   }
   gap(20);
   const currencies=[...panel.querySelectorAll(".report-currency-card")];
@@ -407,7 +408,8 @@ function supplierBuildStyledWorkbook(){
   subtitle:{font:{name:"Arial",sz:14,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
   period:{font:{name:"Arial",sz:10,color:{rgb:"8B7C6D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
   section:{fill:{fgColor:{rgb:"80563D"}},font:{name:"Arial",sz:13,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
-  kpi:{fill:{fgColor:{rgb:"F7F0E7"}},font:{name:"Arial",sz:16,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2,wrapText:true},border:{top:{style:"thin",color:{rgb:"E7D8C7"}},bottom:{style:"thin",color:{rgb:"E7D8C7"}}}},
+  kpiLabel:{fill:{fgColor:{rgb:"F7F0E7"}},font:{name:"Arial",sz:10,bold:true,color:{rgb:"897B6D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2,wrapText:true},border:{top:{style:"thin",color:{rgb:"E7D8C7"}}}},
+  kpi:{fill:{fgColor:{rgb:"F7F0E7"}},font:{name:"Arial",sz:19,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2,wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E7D8C7"}}}},
   metric:{fill:{fgColor:{rgb:"FBF8F3"}},font:{name:"Arial",sz:12,color:{rgb:"514237"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true},border},
   supplier:{fill:{fgColor:{rgb:"EFE4D8"}},font:{name:"Arial",sz:13,bold:true,color:{rgb:"68472F"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
   note:{fill:{fgColor:{rgb:"F8F2EB"}},font:{name:"Arial",sz:10,color:{rgb:"77695C"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true}},
