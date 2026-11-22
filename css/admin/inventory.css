@@ -63,8 +63,10 @@
 .inventory-tab.active span{background:#eee8df;color:#29231e}
 @media(max-width:760px){.inventory-tabs{gap:5px;margin:0 -13px 16px;padding:7px 10px;border-radius:0 0 13px 13px}.inventory-tab{padding:9px 12px;font-size:12px;min-height:0}}
 
-.inventory-export-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:10px 13px;border:1px solid #e8dfd3;border-radius:12px;background:#faf7f2;color:#756453;font-size:12px}
-.inventory-export-toolbar button{padding:8px 13px;border:1px solid #cdb99f;border-radius:9px;background:#fff;color:#68472f;font:inherit;font-weight:700;cursor:pointer}
+.inventory-export-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0 14px;padding:10px 13px;border:1px solid #e4ded5;border-radius:10px;background:#fff;color:#665b50;font-size:12px}
+.inventory-export-toolbar button#openInventoryExport{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:37px;padding:7px 14px;border:1px solid #217346;border-radius:7px;background:#217346;color:#fff;font:inherit;font-size:12px;font-weight:700;transition:background .18s ease,border-color .18s ease;cursor:pointer}
+.inventory-export-toolbar button#openInventoryExport:hover{background:#185c38;border-color:#185c38}
+.inventory-export-toolbar button#openInventoryExport:before{content:"▦";font-size:16px;line-height:1}
 .inventory-export-backdrop{display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;padding:18px;background:#211d1880}
 .inventory-export-backdrop.open{display:flex}
 .inventory-export-dialog{width:min(100%,390px);padding:20px;border:1px solid #e8dfd3;border-radius:16px;background:#fffaf4;box-shadow:0 18px 55px #211d1840}
