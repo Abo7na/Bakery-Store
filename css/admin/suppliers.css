@@ -287,3 +287,36 @@
  body.printing-supplier-report .report-currency-card,
  body.printing-supplier-report .report-count-card{break-inside:avoid;background:#fff!important}
 }
+
+
+/* Final mobile overflow fix for supplier reports */
+@media(max-width:760px){
+  html,body,.admin-body{width:100%;max-width:100%;min-width:0;overflow-x:clip}
+  .admin-main,.suppliers-main{width:100%;max-width:100%;min-width:0;margin-inline:0}
+  .suppliers-main{padding-inline:12px}
+  .suppliers-main .supplier-panel{width:100%;max-width:100%;min-width:0;overflow:hidden}
+  .suppliers-main .admin-section-head{min-width:0;flex-wrap:wrap}
+  .suppliers-main .admin-section-head>div{min-width:0;max-width:100%}
+  .report-filters{width:100%;max-width:100%;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .report-filters label{min-width:0;max-width:100%}
+  .report-filters label input{display:block;width:100%;min-width:0;max-width:100%;font-size:12px;padding-inline:6px}
+  .report-filters button{width:100%;justify-self:stretch}
+  .report-counts,.report-currency-list,.report-currency-card,.report-metrics,.report-table-wrap{width:100%;max-width:100%;min-width:0}
+  .report-counts{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .report-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .report-table-scroll{width:100%;max-width:100%;min-width:0;overflow-x:auto}
+  .report-note{overflow-wrap:anywhere}
+}
+@media(max-width:380px){
+  .suppliers-main{padding-inline:9px}
+  .suppliers-main .admin-card{padding-inline:10px}
+  .report-filters{gap:7px;padding:8px}
+  .report-filters label input{font-size:11px}
+  .report-count-card{padding:8px 5px}
+  .report-count-card span{font-size:9px}
+  .report-count-card b{font-size:16px}
+  .report-metrics{gap:6px}
+  .report-metrics>div{padding:8px}
+  .report-metrics small{font-size:10px}
+  .report-metrics b{font-size:12px}
+}
