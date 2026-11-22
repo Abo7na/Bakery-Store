@@ -231,4 +231,63 @@ const validTabs=["suppliers","addSupplier","newInvoice","invoices","debts","cred
 setReportMonth();$id("reportDateFrom").addEventListener("change",renderSupplierReport);$id("reportDateTo").addEventListener("change",renderSupplierReport);$id("reportSupplierFilter").addEventListener("change",renderSupplierReport);$id("reportCurrencyFilter").addEventListener("change",renderSupplierReport);$id("resetReportDates").addEventListener("click",()=>{$id("reportSupplierFilter").value="all";$id("reportCurrencyFilter").value="all";setReportMonth()});$id("printSupplierReport").addEventListener("click",()=>{document.body.classList.add("printing-supplier-report");window.print();setTimeout(()=>document.body.classList.remove("printing-supplier-report"),800)});
 // Preserve the exact scroll position when refreshing the suppliers page.
 try{const scrollKey="supplier-scroll:"+location.pathname+location.hash;history.scrollRestoration="manual";window.addEventListener("pagehide",()=>sessionStorage.setItem(scrollKey,String(window.scrollY)));const savedScroll=sessionStorage.getItem(scrollKey);if(savedScroll!==null){sessionStorage.removeItem(scrollKey);const y=Math.max(0,Number(savedScroll)||0);requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo({top:y,left:0,behavior:"instant"})))}}catch(e){}
+
+/* Unified export for the currently selected supplier/purchasing section. */
+function supplierExportPanel(){
+ const visible=[...document.querySelectorAll(".supplier-panel")].find(p=>!p.classList.contains("is-hidden"));
+ return visible||document.querySelector('[data-panel="suppliers"]');
+}
+function supplierExportRows(panel){
+ const rows=[];
+ const title=panel.querySelector("h2")?.textContent?.trim()||"تقرير الموردين والمشتريات";
+ rows.push([title]);
+ rows.push(["تاريخ التصدير",new Date().toLocaleString("ar-SY")]);
+ rows.push([]);
+ const cards=panel.querySelectorAll(".supplier-record-group,.supplier-report-card,.invoice-register-card,.invoice-row,.debt-row,.supplier-credit-row,.return-row,.statement-entry,.report-currency-card,.report-count-card");
+ if(cards.length){
+  cards.forEach(card=>{const line=(card.innerText||card.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean);if(line.length)rows.push(line);});
+ }else{
+  const text=(panel.innerText||panel.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean);
+  text.forEach(line=>rows.push([line]));
+ }
+ return rows;
+}
+function supplierExportExcel(){
+ const panel=supplierExportPanel(),rows=supplierExportRows(panel);
+ const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+ const table=rows.map(row=>"<tr>"+row.map(cell=>"<td>"+esc(cell)+"</td>").join("")+"</tr>").join("");
+ const doc='<!doctype html><html><head><meta charset="utf-8"></head><body><table>'+table+'</table></body></html>';
+ const blob=new Blob(["\ufeff",doc],{type:"application/vnd.ms-excel;charset=utf-8"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xls";
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function supplierPrintCurrent(){
+ const panel=supplierExportPanel(),title=panel.querySelector("h2")?.textContent?.trim()||"تقرير الموردين والمشتريات";
+ const w=window.open("","_blank");
+ if(!w){alert("يرجى السماح بفتح النوافذ المنبثقة لإتمام الطباعة.");return;}
+ const styles=[...document.querySelectorAll('link[rel="stylesheet"]')].map(x=>'<link rel="stylesheet" href="'+x.href+'">').join("");
+ w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+title+'</title>'+styles+'<style>body{background:#fff!important;padding:20px!important}.admin-card{box-shadow:none!important;border:0!important}.supplier-tabs,.supplier-export-toolbar,#adminSidebar,button,form,.supplier-filters{display:none!important}.is-hidden{display:none!important}*{print-color-adjust:exact;-webkit-print-color-adjust:exact}@page{size:auto;margin:12mm}</style></head><body><h2>'+title+'</h2>'+panel.innerHTML+'</body></html>');
+ w.document.close();w.onload=()=>{w.focus();w.print();};
+}
+function openSupplierExportDialog(){
+ let modal=document.getElementById("supplierExportDialog");
+ if(!modal){
+  modal=document.createElement("div");modal.id="supplierExportDialog";modal.className="supplier-export-backdrop";
+  modal.innerHTML='<section class="supplier-export-dialog" role="dialog" aria-modal="true" aria-labelledby="supplierExportTitle"><div class="supplier-export-head"><h3 id="supplierExportTitle">إخراج التقرير</h3><button type="button" class="supplier-export-close" aria-label="إغلاق">×</button></div><p>اختر طريقة واحدة أو أكثر لإخراج بيانات التبويب الحالي مع مراعاة الفلاتر الظاهرة.</p><label><input type="checkbox" value="excel" checked> Excel</label><label><input type="checkbox" value="pdf" checked> PDF</label><label><input type="checkbox" value="print" checked> طباعة</label><div class="supplier-export-actions"><button type="button" class="outline supplier-export-close">إلغاء</button><button type="button" class="primary" id="runSupplierExport">تنفيذ</button></div></section>';
+  document.body.appendChild(modal);
+  modal.querySelectorAll(".supplier-export-close").forEach(b=>b.addEventListener("click",()=>modal.classList.remove("is-open")));
+  modal.addEventListener("click",e=>{if(e.target===modal)modal.classList.remove("is-open")});
+  modal.querySelector("#runSupplierExport").addEventListener("click",()=>{
+   const chosen=[...modal.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);
+   if(!chosen.length)return alert("اختر طريقة إخراج واحدة على الأقل.");
+   modal.classList.remove("is-open");
+   if(chosen.includes("excel"))supplierExportExcel();
+   if(chosen.includes("pdf")||chosen.includes("print"))supplierPrintCurrent();
+  });
+ }
+ modal.classList.add("is-open");
+}
+$id("openSupplierExport")?.addEventListener("click",openSupplierExportDialog);
+
 })();
