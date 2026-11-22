@@ -104,3 +104,31 @@
  body.printing-inventory-export{background:#fff!important}
 }
 @media(max-width:600px){.inventory-export-toolbar{margin-inline:-13px;border-radius:0 0 12px 12px;padding:9px 13px}}
+
+/* Inventory filters: match the supplier filter panel hierarchy on phones */
+.inventory-main .inventory-filters{box-sizing:border-box;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;gap:10px;padding:13px}
+.inventory-main .inventory-filters>label{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-width:0}
+.inventory-main .inventory-filters input,.inventory-main .inventory-filters select{box-sizing:border-box;width:100%;min-width:0;min-height:44px}
+#movementFilters{grid-template-columns:repeat(2,minmax(0,1fr))}
+#movementFilters label:first-child,#movementFilters label:nth-child(2),#movementFilters label:nth-child(3),#movementFilters button{grid-column:1/-1}
+#movementFilters label:nth-child(4){grid-column:1}
+#movementFilters label:nth-child(5){grid-column:2}
+#movementFilters button{width:100%}
+@media(max-width:760px){
+ .inventory-main .inventory-filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:12px}
+ .inventory-main .inventory-filters label{min-width:0}
+ #movementFilters label:first-child,#movementFilters label:nth-child(2),#movementFilters label:nth-child(3),#movementFilters button{grid-column:1/-1}
+ #movementFilters label:nth-child(4){grid-column:1}
+ #movementFilters label:nth-child(5){grid-column:2}
+}
+@media(max-width:380px){
+ .inventory-main .inventory-filters{gap:7px;padding:10px}
+ #movementFilters label:nth-child(4),#movementFilters label:nth-child(5){grid-column:1/-1}
+}
+/* Exact supplier-style horizontal tab rail, with predictable touch scrolling */
+.inventory-tabs{box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:6px;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;direction:rtl;touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;scroll-snap-type:x proximity}
+.inventory-tabs::-webkit-scrollbar{display:none}
+.inventory-tabs .inventory-tab{flex:0 0 auto;scroll-snap-align:center;white-space:nowrap}
+@media(max-width:760px){
+ .inventory-main .inventory-tabs{width:calc(100% + 26px);max-width:none;margin-inline:-13px;padding:7px 10px;border-radius:0 0 13px 13px}
+}
