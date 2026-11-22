@@ -595,6 +595,44 @@
 .supplier-export-run:hover{background:#185c38}
 @media(max-width:520px){.supplier-export-toolbar{padding:9px;font-size:11px}.supplier-export-toolbar button#openSupplierExport{min-height:35px;padding:6px 11px;font-size:11px}.supplier-export-dialog{padding:15px}}
 @media print{
+ body.printing-supplier-export .supplier-print-heading{
+  display:grid!important;
+  grid-template-columns:1fr 2fr 1fr;
+  align-items:center;
+  width:100%;
+  margin:0 0 9mm;
+  padding:0;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  direction:rtl;
+  break-inside:avoid;
+ }
+ body.printing-supplier-export .supplier-print-shop-name{
+  grid-column:2;
+  grid-row:1;
+  text-align:center;
+  color:#A97812!important;
+  font-family:"Traditional Arabic",Tahoma,serif;
+  font-size:25pt;
+  font-weight:700;
+  line-height:1.35;
+  background:transparent!important;
+  border:0!important;
+ }
+ body.printing-supplier-export .supplier-print-created-date{
+  grid-column:1;
+  grid-row:1;
+  justify-self:start;
+  text-align:left;
+  color:#8B7C6D!important;
+  font-family:Arial,Tahoma,sans-serif;
+  font-size:9pt;
+  font-weight:400;
+  white-space:nowrap;
+  background:transparent!important;
+  border:0!important;
+ }
  body.printing-supplier-export #adminSidebar,
  body.printing-supplier-export .supplier-tabs,
  body.printing-supplier-export .supplier-export-toolbar,
