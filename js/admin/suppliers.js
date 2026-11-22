@@ -11,6 +11,7 @@ const fmt=n=>new Intl.NumberFormat("ar-SY",{maximumFractionDigits:2}).format(Num
 function tab(name){document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));document.querySelectorAll("[data-panel]").forEach(p=>p.classList.toggle("is-hidden",p.dataset.panel!==name));}
 document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>tab(b.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>tab(b.dataset.go)));
+$id("backToSuppliers").addEventListener("click",()=>tab("suppliers"));
 let statementSupplierId=null;
 function renderStatement(id){
 const s=state.suppliers.find(x=>x.id===id);if(!s)return;statementSupplierId=id;
