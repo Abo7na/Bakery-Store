@@ -53,7 +53,7 @@
 <section class="admin-card inventory-tab-panel is-tab-hidden" data-inventory-panel="movements" id="movementsSection">
 <div class="inventory-section-head"><div><h2>سجل حركة المواد الأولية</h2><small id="movementCount">0 حركة</small></div></div>
 <div class="supplier-filters inventory-filters" id="movementFilters"><label>بحث في السجل<input id="movementSearch" type="search" placeholder="اسم المادة أو السبب..."></label><label>نوع الحركة<select id="movementFilter"><option value="all">كل الحركات</option><option value="add">توريد</option><option value="remove">سحب</option><option value="set">تسوية</option></select></label><label>المادة<select id="movementMaterialFilter"><option value="all">كل المواد</option></select></label><label>من تاريخ<input id="movementDateFrom" type="date"></label><label>إلى تاريخ<input id="movementDateTo" type="date"></label><button type="button" class="outline" id="resetMovementFilters">إعادة ضبط الفلاتر</button></div>
-<div id="inventoryMovements" class="inventory-movements"></div>
+<div id="inventoryMovements" class="inventory-material-groups"></div><section id="inventoryMaterialProfile" class="inventory-material-profile" hidden></section>
 </section>
 <p class="admin-notice">هذه الصفحة مخصصة لشراء وتخزين المواد الأولية، وليست لشراء المعجنات الجاهزة. ربط استهلاك المواد بالمبيعات سيتم لاحقاً من خلال صفحة الوصفات والمقادير. البيانات في هذه النسخة محفوظة محلياً على هذا المتصفح.</p>
 </main>
