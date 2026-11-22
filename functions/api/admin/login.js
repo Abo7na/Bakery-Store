@@ -1,6 +1,10 @@
 import { createSession, isAuthConfigured, safeEqual, sessionCookie } from "../../_auth.js";
 
-export async function onRequestPost({ request, env }) {
+export async function onRequest({ request, env }) {
+  if (request.method !== "POST") {
+    return new Response("Method Not Allowed", { status: 405, headers: { Allow: "POST" } });
+  }
+
   if (!isAuthConfigured(env)) {
     return Response.json({ error: "auth_not_configured" }, { status: 503 });
   }
@@ -43,11 +47,4 @@ export async function onRequestPost({ request, env }) {
       "Pragma": "no-cache"
     }
   });
-}
-
-export async function onRequest({ request }) {
-  if (request.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405, headers: { Allow: "POST" } });
-  }
-  return onRequestPost({ request, env: {} });
 }
