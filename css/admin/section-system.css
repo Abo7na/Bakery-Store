@@ -1,0 +1,112 @@
+/* Shared administration section system — aligned with the Suppliers workspace */
+:root{
+  --section-ink:#29231e;
+  --section-muted:#786d62;
+  --section-line:#e8dfd3;
+  --section-surface:#fff;
+  --section-warm:#f7f2eb;
+  --section-accent:#a97812;
+  --section-tab-bg:#eee8df;
+}
+.admin-main{min-width:0}
+.admin-main>header:not(.orders-head):not(.dashboard-top){margin-bottom:20px}
+.admin-page-head h1,.admin-main>header h1{color:var(--section-ink);letter-spacing:-.25px}
+.admin-page-head p,.admin-main>header p{color:var(--section-muted);line-height:1.8}
+.admin-card,.dashboard-panel{border:1px solid var(--section-line);border-radius:14px;background:var(--section-surface);box-shadow:0 3px 14px #392b1b08}
+.admin-card{padding:20px}
+.admin-section-head,.sales-section-head{gap:12px}
+.admin-section-head h2,.sales-section-head h2{color:var(--section-ink)}
+.admin-section-head> :last-child{min-width:0}
+.supplier-tabs,.supplier-profile-tabs,.inventory-tabs,.orders-tabs{
+  display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;
+  padding:7px 9px;margin:0 0 16px;border:1px solid var(--section-line);
+  border-radius:14px;background:var(--section-tab-bg);scroll-behavior:smooth;
+  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch
+}
+.supplier-tabs::-webkit-scrollbar,.supplier-profile-tabs::-webkit-scrollbar,.inventory-tabs::-webkit-scrollbar,.orders-tabs::-webkit-scrollbar{display:none}
+.supplier-tab,.supplier-profile-tab,.inventory-tab,.orders-tabs a{
+  flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:39px;padding:9px 14px;border:1px solid transparent;border-radius:10px;
+  background:transparent;color:#665b50;font:inherit;font-size:12px;font-weight:700;
+  line-height:1.4;text-decoration:none;white-space:nowrap;cursor:pointer;
+  transition:background .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease
+}
+.supplier-tab span,.inventory-tab span{min-width:20px;height:20px;padding:0 5px;border-radius:20px;background:#e5ddd2;color:#665b50;font-size:10px}
+.supplier-tab.active,.supplier-profile-tab.active,.inventory-tab.active,.orders-tabs a.active{
+  border-color:#e4d7c7;background:#fff;color:#29231e;font-weight:800;box-shadow:0 2px 7px #392b1b12
+}
+.supplier-tab.active span,.inventory-tab.active span{background:#eee8df;color:#29231e}
+.supplier-tab:focus-visible,.supplier-profile-tab:focus-visible,.inventory-tab:focus-visible,.orders-tabs a:focus-visible{
+  outline:2px solid #b68b69;outline-offset:2px
+}
+.supplier-filters,.report-filters,.orders-tool-panel,.sale-fields,.formgrid{
+  min-width:0
+}
+.supplier-filters{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,175px),1fr));
+  align-items:end;gap:10px;margin:0 0 15px;padding:13px;
+  border:1px solid #eee5da;border-radius:11px;background:#fcfaf7
+}
+.supplier-filters input,.supplier-filters select,.supplier-filters label input,
+.report-filters input,.report-filters select{
+  min-width:0;min-height:39px;padding:8px 10px;border:1px solid #e4dbd0;
+  border-radius:8px;background:#fff;color:var(--section-ink);font:inherit;font-size:12px
+}
+.supplier-filters label,.report-filters label{display:grid;gap:5px;color:var(--section-muted);font-size:11px;font-weight:700}
+.supplier-filter-reset{min-height:39px;white-space:nowrap}
+.supplier-export-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:10px 0 14px;padding:10px 13px;border:1px solid #e4ded5;
+  border-radius:10px;background:#fff;color:#665b50;font-size:12px
+}
+.supplier-export-toolbar button#openSupplierExport,
+.inventory-export-toolbar button#openInventoryExport{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:37px;
+  padding:7px 14px;border:1px solid #217346;border-radius:7px;background:#217346;
+  color:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer
+}
+.supplier-export-toolbar button#openSupplierExport:hover,
+.inventory-export-toolbar button#openInventoryExport:hover{background:#185c38;border-color:#185c38}
+.supplier-list,.admin-products-list,.admin-orders-list{min-width:0}
+.supplier-list{gap:9px}
+.admin-item,.order-card,.inventory-product,.sale-product-card{
+  border-color:var(--section-line);border-radius:11px
+}
+.admin-item{padding:13px 14px;background:#fff}
+.admin-item:hover{border-color:#d7c4ad;background:#fffdf9}
+.formgrid label,.sale-fields label{color:#55483c;font-size:12px}
+.formgrid input,.formgrid select,.formgrid textarea,
+.sale-fields input,.sale-fields select,.sale-fields textarea{
+  min-height:39px;border:1px solid #e4dbd0;border-radius:8px;background:#fff;
+  color:var(--section-ink);font:inherit;font-size:12px
+}
+.formgrid input:focus,.formgrid select:focus,.formgrid textarea:focus,
+.sale-fields input:focus,.sale-fields select:focus,.sale-fields textarea:focus,
+.supplier-filters input:focus,.supplier-filters select:focus{
+  outline:2px solid #b68b6955;border-color:#b68b69
+}
+.admin-main button.primary,.admin-main button.outline,.admin-main button.danger{
+  min-height:37px;border-radius:8px;font:inherit;font-size:12px;font-weight:700
+}
+.admin-main button.primary{padding:8px 14px}
+.admin-main button.outline{padding:7px 13px}
+.admin-main button.danger{padding:7px 13px}
+.admin-main button:focus-visible,.admin-main a:focus-visible{outline:2px solid #b68b69;outline-offset:2px}
+.admin-notice{border-radius:10px;line-height:1.85}
+@media(max-width:760px){
+  .admin-card{padding:15px;border-radius:12px}
+  .supplier-tabs,.supplier-profile-tabs,.inventory-tabs,.orders-tabs{
+    gap:5px;margin:0 -13px 15px;padding:7px 10px;border-radius:0 0 13px 13px
+  }
+  .supplier-tab,.supplier-profile-tab,.inventory-tab,.orders-tabs a{min-height:36px;padding:8px 11px;font-size:11px}
+  .supplier-filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px}
+  .supplier-filters input[type=search],.supplier-filter-grid input[type=search]{grid-column:1/-1}
+  .supplier-export-toolbar{margin-inline:-13px;padding:9px 13px;border-radius:0 0 12px 12px}
+  .admin-main>header:not(.orders-head):not(.dashboard-top){margin-bottom:15px}
+}
+@media(max-width:420px){
+  .supplier-filters{grid-template-columns:1fr}
+  .supplier-filters input[type=search],.supplier-filter-grid input[type=search]{grid-column:auto}
+  .supplier-export-toolbar{align-items:flex-start;flex-direction:column}
+  .supplier-export-toolbar button{width:100%}
+}
