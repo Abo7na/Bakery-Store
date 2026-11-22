@@ -65,3 +65,19 @@
 .debt-row>div:last-child{display:flex;align-items:flex-end;gap:8px;flex-direction:column}
 .debt-pay-btn{padding:7px 12px!important;border-radius:9px!important;font-size:12px!important;min-height:0!important}
 @media(max-width:760px){.debt-row>div:last-child{width:100%;align-items:stretch}.debt-pay-btn{align-self:flex-start}}
+
+
+/* Invoice payment history */
+.payment-history{grid-column:1/-1;width:100%;margin-top:4px;padding-top:10px;border-top:1px solid #eee3d7}
+.payment-history summary{display:flex;align-items:center;gap:8px;cursor:pointer;color:#76563f;font-size:13px;font-weight:700;list-style:none}
+.payment-history summary::-webkit-details-marker{display:none}
+.payment-history summary:after{content:"＋";margin-inline-start:auto;color:#9a7357;font-size:16px}
+.payment-history[open] summary:after{content:"−"}
+.payment-history summary span{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:20px;background:#f1e6d8;color:#76563f;font-size:11px}
+.payment-history-list{display:grid;gap:7px;margin-top:10px}
+.payment-history-item{display:grid;grid-template-columns:1fr auto;gap:3px 10px;padding:10px 12px;border-radius:10px;background:#faf5ee;font-size:12px}
+.payment-history-item span{color:#655548}
+.payment-history-item b{color:#39734a}
+.payment-history-item small{grid-column:1/-1;color:#918274;font-size:11px}
+.empty-payment-history{color:#918274;font-size:12px}
+@media(max-width:760px){.payment-history{width:100%}.payment-history-item{padding:9px 10px}}
