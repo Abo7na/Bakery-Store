@@ -245,8 +245,9 @@ jobs:
               await page.locator('[data-void-supplier-recovery="audit-recovery"]').waitFor({ state: 'visible', timeout: 15000 });
               await page.locator('[data-void-supplier-recovery="audit-recovery"]').click();
               await page.locator('[data-tab="invoices"]').click();
-              await page.locator('#invoicesList details.payment-history summary').first().click();
-              await page.locator('[data-void-supplier-payment="audit-source"]').waitFor({ state: 'visible', timeout: 15000 });
+              const paymentAction = page.locator('[data-void-supplier-payment="audit-source"]');
+              await paymentAction.evaluate(el => el.closest('details.payment-history')?.querySelector('summary')?.click());
+              await paymentAction.waitFor({ state: 'visible', timeout: 15000 });
               await page.locator('[data-void-supplier-payment="audit-source"]').click();
               const result = await page.evaluate(() => {
                 const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
