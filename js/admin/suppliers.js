@@ -292,104 +292,141 @@ function supplierExportRows(clone,title){
 function supplierBuildStyledWorkbook(){
  const panel=supplierExportPanel(),isReport=panel?.dataset.panel==="reports";
  const aoa=[],merges=[],rowKinds=[];
- const push=(cells,kind="data",height=30,mergeAll=false)=>{
-  const row=aoa.length;aoa.push(cells);
-  rowKinds.push({kind,height});
-  if(mergeAll&&cells.length>1)merges.push({s:{r:row,c:0},e:{r:row,c:cells.length-1}});
+ const C=8;
+ const blankCells=()=>Array(C).fill("");
+ const push=(cells,kind="data",height=30,merge=null)=>{
+  const row=aoa.length,full=[...cells,...Array(Math.max(0,C-cells.length)).fill("")].slice(0,C);
+  aoa.push(full);rowKinds.push({kind,height});
+  if(merge)merges.push({s:{r:row,c:merge[0]},e:{r:row,c:merge[1]}});
+  return row;
  };
- const blank=(height=14)=>push(["","","","","",""],"blank",height);
- const shop=state.settings?.shop_name||"مخبوزات أمية";
+ const gap=(height=12)=>push(blankCells(),"blank",height);
+ const full=(value,kind,height)=>push([value],"",height,[0,C-1])&&(()=>{rowKinds[rowKinds.length-1].kind=kind;})();
+ const pair=(label,value,kind="metric",height=42)=>{
+  const row=blankCells();row[0]=label;row[1]=value;
+  push(row,kind,height);
+ };
+ const metricGrid=(items)=>{
+  for(let i=0;i<items.length;i+=3){
+   const row=blankCells();
+   items.slice(i,i+3).forEach((item,j)=>{const c=j*3;row[c]=item[0];row[c+1]=item[1];});
+   push(row,"metric",44);
+  }
+ };
+ const shop=String(state.settings?.shop_name||"مخبوزات أمية").trim();
  const title=panel?.querySelector("h2")?.innerText?.trim()||"تقارير الموردين والمشتريات";
- const createdAt=new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date());
- const shopWordmark=String(shop).trim().replace(/\\s+/g,"\\n");
- const shopRow=aoa.length;
- push([shopWordmark,"","","","","تاريخ إنشاء التقرير: "+createdAt],"shop",66,false);
- merges.push({s:{r:shopRow,c:0},e:{r:shopRow,c:4}});
- push([title,"","","","",""],"title",42,true);
+ const createdAt=new Intl.DateTimeFormat("ar-SY",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date());
  if(isReport){
+  const head=blankCells();head[1]=shop;head[7]="تاريخ إنشاء التقرير\n"+createdAt;
+  const shopRow=push(head,"shop",76);
+  merges.push({s:{r:shopRow,c:1},e:{r:shopRow,c:5}},{s:{r:shopRow,c:6},e:{r:shopRow,c:7}});
+  push([title],"title",42,[0,7]);
   const from=panel.querySelector("#reportDateFrom")?.value||"—";
   const to=panel.querySelector("#reportDateTo")?.value||"—";
-  push(["ملخص مالي حسب الفترة المحددة","","","","",""],"subtitle",32,true);
-  push(["الفترة: "+from+" إلى "+to,"","","","",""],"meta",30,true);
-  blank(20);
-  push(["مؤشرات التقرير","","","","",""],"section",34,true);
-  const counts=[...panel.querySelectorAll(".report-count-card")].map(x=>[x.querySelector("span")?.innerText?.trim()||"المؤشر",x.querySelector("b")?.innerText?.trim()||"0"]);
+  push(["ملخص مالي حسب الفترة المحددة"],"subtitle",32,[0,7]);
+  push(["الفترة: "+from+" إلى "+to],"period",28,[0,7]);
+  gap(16);
+  push(["مؤشرات التقرير"],"section",34,[0,7]);
+  const counts=[...panel.querySelectorAll(".report-count-card")].map(x=>[
+   x.querySelector("span")?.innerText?.trim()||"المؤشر",
+   x.querySelector("b")?.innerText?.trim()||"0"
+  ]);
   if(counts.length){
-   push(counts.map(x=>x[0]),"label",29);
-   push(counts.map(x=>x[1]),"kpi",42);
+   const row=blankCells();
+   [[0,1],[3,4],[6,7]].forEach((cols,i)=>{
+    if(counts[i]){row[cols[0]]=counts[i][0];row[cols[1]]=counts[i][1];}
+   });
+   push(row,"kpi",66);
   }
-  blank(18);
-  [...panel.querySelectorAll(".report-currency-card")].forEach(card=>{
+  gap(20);
+  const currencies=[...panel.querySelectorAll(".report-currency-card")];
+  currencies.forEach((card,index)=>{
    const currency=card.querySelector("h3")?.innerText?.trim()||"";
-   push(["الملخص المالي — "+currency,"","","","",""],"section",34,true);
-   const metrics=[...card.querySelectorAll(".report-metrics>div")].map(x=>[x.querySelector("small")?.innerText?.trim()||"",x.querySelector("b")?.innerText?.trim()||"—"]);
-   for(let i=0;i<metrics.length;i+=2){
-    const a=metrics[i]||["",""],b=metrics[i+1]||["",""];
-    push([a[0],a[1],b[0],b[1],"",""],"metric",36);
-   }
-   blank(17);
+   push(["الملخص المالي — "+currency],"section",36,[0,7]);
+   const metrics=[...card.querySelectorAll(".report-metrics>div")].map(x=>[
+    x.querySelector("small")?.innerText?.trim()||"البند",
+    x.querySelector("b")?.innerText?.trim()||"—"
+   ]);
+   metricGrid(metrics);
+   gap(17);
   });
   const suppliers=[...panel.querySelectorAll(".supplier-report-card")];
   if(suppliers.length){
-   push(["ملخص الموردين","","","","",""],"section",34,true);
-   suppliers.forEach(card=>{
+   push(["ملخص الموردين"],"section",38,[0,7]);
+   suppliers.forEach((card,index)=>{
     const head=card.querySelector(".supplier-report-card-head");
-    push(["المورد: "+(head?.querySelector("b")?.innerText?.trim()||"مورد"),head?.querySelector("span")?.innerText?.trim()||"","","","",""],"supplier",34);
+    const supplierName=head?.querySelector("b")?.innerText?.trim()||"مورد";
+    const currency=head?.querySelector("span")?.innerText?.trim()||"";
+    push(["المورد: "+supplierName+"     |     العملة: "+currency],"supplier",36,[0,7]);
     const metrics=[...card.querySelectorAll(".supplier-report-card-metrics span")].map(x=>{
-     const v=x.querySelector("b"),label=x.cloneNode(true);label.querySelector("b")?.remove();
-     return [label.innerText.trim(),v?.innerText?.trim()||"—"];
+     const value=x.querySelector("b"),label=x.cloneNode(true);label.querySelector("b")?.remove();
+     return [label.innerText.trim(),value?.innerText?.trim()||"—"];
     });
-    metrics.forEach(x=>push([x[0],x[1],"","","",""],"metric",33));
-    blank(12);
+    metricGrid(metrics);
+    gap(13);
    });
   }
   const note=panel.querySelector(".report-note")?.innerText?.trim();
-  if(note){push(["ملاحظات محاسبية","","","","",""],"section",34,true);push([note,"","","","",""],"note",52,true);}
+  if(note){
+   push(["ملاحظات محاسبية"],"section",34,[0,7]);
+   push([note],"note",58,[0,7]);
+  }
  }else{
-  blank(12);
+  const head=blankCells();head[1]=shop;head[7]="تاريخ إنشاء التقرير\n"+createdAt;
+  const shopRow=push(head,"shop",76);
+  merges.push({s:{r:shopRow,c:1},e:{r:shopRow,c:5}},{s:{r:shopRow,c:6},e:{r:shopRow,c:7}});
+  push([title],"title",42,[0,7]);
+  gap(15);
   const {clone}=supplierExportCleanClone(),rows=supplierExportRows(clone,title);
   rows.forEach(row=>{
-   const cells=row.cells.length?row.cells:[""];
-   if(row.kind==="title")push([cells[0]||title,"","","","",""],"title",40,true);
-   else if(row.kind==="section")push([cells[0]||"","","","","",""],"section",34,true);
-   else push([...cells,...Array(Math.max(0,6-cells.length)).fill("")].slice(0,6),row.kind==="header"||row.kind==="tablehead"?"label":row.kind,32);
+   const cells=row.cells.length?row.cells:[ "" ];
+   if(row.kind==="title")push([cells[0]||title],"subtitle",34,[0,7]);
+   else if(row.kind==="section")push([cells[0]||""],"section",34,[0,7]);
+   else if(row.kind==="blank")gap(10);
+   else{
+    const values=blankCells();
+    cells.slice(0,8).forEach((v,i)=>values[i]=v);
+    push(values,row.kind==="header"||row.kind==="tablehead"?"label":"data",38);
+   }
   });
  }
- if(!aoa.length)push(["لا توجد بيانات للتصدير","","","","",""],"note",34,true);
+ if(!aoa.length)push(["لا توجد بيانات للتصدير"],"note",38,[0,7]);
  const ws=XLSX.utils.aoa_to_sheet(aoa);
- ws["!cols"]=[{wch:27},{wch:17},{wch:27},{wch:17},{wch:16},{wch:16}];
+ ws["!cols"]=[{wch:24},{wch:14},{wch:3},{wch:24},{wch:14},{wch:3},{wch:24},{wch:14}];
  ws["!rows"]=rowKinds.map(x=>({hpt:x.height}));
  ws["!merges"]=merges;
- ws["!sheetViews"]=[{rightToLeft:true,showGridLines:false}];
- ws["!pageSetup"]={paperSize:9,orientation:"portrait",fitToWidth:1,fitToHeight:0};
- ws["!printOptions"]={horizontalCentered:true};
- ws["!margins"]={left:0.25,right:0.25,top:0.4,bottom:0.4,header:0.15,footer:0.15};
+ ws["!sheetViews"]=[{rightToLeft:true,showGridLines:false,zoomScale:90,zoomScaleNormal:100}];
+ ws["!pageSetup"]={paperSize:9,orientation:"portrait",fitToWidth:1,fitToHeight:0,scale:90};
+ ws["!printOptions"]={horizontalCentered:true,verticalCentered:false};
+ ws["!margins"]={left:0.28,right:0.28,top:0.42,bottom:0.42,header:0.18,footer:0.18};
+ ws["!autofilter"]=undefined;
+ const border={bottom:{style:"thin",color:{rgb:"E8D9C9"}}};
  const palette={
-  shop:{font:{name:"Arabic Typesetting",sz:25,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2,wrapText:true}},
-  title:{fill:{fgColor:{rgb:"33251E"}},font:{name:"Arial",sz:18,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2}},
+  shop:{font:{name:"Traditional Arabic",sz:29,bold:true,color:{rgb:"A97812"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2,wrapText:true}},
+  title:{fill:{fgColor:{rgb:"35271F"}},font:{name:"Arial",sz:17,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2}},
   subtitle:{font:{name:"Arial",sz:14,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
-  meta:{font:{name:"Arial",sz:11,color:{rgb:"897B6D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true}},
-  created:{font:{name:"Arial",sz:9,color:{rgb:"897B6D"},italic:true},alignment:{horizontal:"center",vertical:"center",readingOrder:2,wrapText:true}},
-  section:{fill:{fgColor:{rgb:"80563D"}},font:{name:"Arial",sz:14,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
-  label:{fill:{fgColor:{rgb:"F1E8DE"}},font:{name:"Arial",sz:12,bold:true,color:{rgb:"624631"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E8D8C8"}}}},
-  kpi:{fill:{fgColor:{rgb:"FCF8F3"}},font:{name:"Arial",sz:18,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2}},
-  metric:{fill:{fgColor:{rgb:"F8F2EB"}},font:{name:"Arial",sz:12,color:{rgb:"514237"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E8D8C8"}}}},
-  supplier:{fill:{fgColor:{rgb:"80563D"}},font:{name:"Arial",sz:13,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
-  note:{fill:{fgColor:{rgb:"FCF8F3"}},font:{name:"Arial",sz:10,color:{rgb:"897B6D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true}},
-  data:{font:{name:"Arial",sz:12,color:{rgb:"514237"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true}},
-  tablehead:{fill:{fgColor:{rgb:"F1E8DE"}},font:{name:"Arial",sz:12,bold:true,color:{rgb:"624631"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true}},
+  period:{font:{name:"Arial",sz:10,color:{rgb:"8B7C6D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
+  section:{fill:{fgColor:{rgb:"80563D"}},font:{name:"Arial",sz:13,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
+  kpi:{fill:{fgColor:{rgb:"F7F0E7"}},font:{name:"Arial",sz:16,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2,wrapText:true},border:{top:{style:"thin",color:{rgb:"E7D8C7"}},bottom:{style:"thin",color:{rgb:"E7D8C7"}}}},
+  metric:{fill:{fgColor:{rgb:"FBF8F3"}},font:{name:"Arial",sz:12,color:{rgb:"514237"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true},border},
+  supplier:{fill:{fgColor:{rgb:"EFE4D8"}},font:{name:"Arial",sz:13,bold:true,color:{rgb:"68472F"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
+  note:{fill:{fgColor:{rgb:"F8F2EB"}},font:{name:"Arial",sz:10,color:{rgb:"77695C"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true}},
+  label:{fill:{fgColor:{rgb:"F1E8DE"}},font:{name:"Arial",sz:12,bold:true,color:{rgb:"624631"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true},border},
+  tablehead:{fill:{fgColor:{rgb:"F1E8DE"}},font:{name:"Arial",sz:12,bold:true,color:{rgb:"624631"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true},border},
+  data:{font:{name:"Arial",sz:12,color:{rgb:"514237"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true},border},
   blank:{}
  };
  rowKinds.forEach((meta,r)=>{
-  for(let c=0;c<6;c++){
+  for(let c=0;c<C;c++){
    const ref=XLSX.utils.encode_cell({r,c});
    if(!ws[ref])ws[ref]={t:"s",v:""};
    ws[ref].s=palette[meta.kind]||palette.data;
-   if(r===shopRow&&c===5)ws[ref].s=palette.created;
   }
  });
+ const lastRow=aoa.length-1;
+ ws["!printArea"]="A1:H"+(lastRow+1);
  const wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,ws,"تقرير الموردين");
+ XLSX.utils.book_append_sheet(wb,ws,isReport?"التقرير المالي":"تقرير القسم");
  wb.Workbook={Views:[{RTL:true}],Sheets:[{Hidden:0}]};
  return wb;
 }
