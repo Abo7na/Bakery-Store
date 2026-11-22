@@ -300,8 +300,10 @@ function supplierBuildStyledWorkbook(){
  const blank=(height=14)=>push(["","","","","",""],"blank",height);
  const shop=state.settings?.shop_name||"مخبوزات أمية";
  const title=panel?.querySelector("h2")?.innerText?.trim()||"تقارير الموردين والمشتريات";
- push([shop,"","","","",""],"shop",32,true);
+ push([shop,"","","","",""],"shop",48,true);
  push([title,"","","","",""],"title",44,true);
+ const createdAt=new Date().toLocaleDateString("en-GB");
+ push(["تاريخ إنشاء التقرير: "+createdAt,"","","","",""],"created",28,true);
  if(isReport){
   const from=panel.querySelector("#reportDateFrom")?.value||"—";
   const to=panel.querySelector("#reportDateTo")?.value||"—";
@@ -360,10 +362,11 @@ function supplierBuildStyledWorkbook(){
  ws["!printOptions"]={horizontalCentered:true};
  ws["!margins"]={left:0.25,right:0.25,top:0.4,bottom:0.4,header:0.15,footer:0.15};
  const palette={
-  shop:{fill:{fgColor:{rgb:"33251E"}},font:{name:"Arial",sz:13,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
+  shop:{font:{name:"Arial",sz:23,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
   title:{fill:{fgColor:{rgb:"33251E"}},font:{name:"Arial",sz:19,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
   subtitle:{font:{name:"Arial",sz:14,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
   meta:{font:{name:"Arial",sz:11,color:{rgb:"897B6D"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
+  created:{font:{name:"Arial",sz:11,color:{rgb:"897B6D"},italic:true},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
   section:{fill:{fgColor:{rgb:"80563D"}},font:{name:"Arial",sz:14,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2}},
   label:{fill:{fgColor:{rgb:"F1E8DE"}},font:{name:"Arial",sz:12,bold:true,color:{rgb:"624631"}},alignment:{horizontal:"right",vertical:"center",readingOrder:2,wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E8D8C8"}}}},
   kpi:{fill:{fgColor:{rgb:"FCF8F3"}},font:{name:"Arial",sz:18,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center",vertical:"center",readingOrder:2}},
