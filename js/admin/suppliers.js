@@ -245,15 +245,48 @@ function supplierExportCleanClone(){
  return {panel,clone,title:panel.querySelector("h2")?.textContent?.trim()||"تقرير الموردين والمشتريات"};
 }
 function supplierExportRows(clone,title){
- const rows=[[title],["تاريخ التصدير",new Date().toLocaleString("ar-SY")],[]];
+ const rows=[{kind:"title",cells:[title]},{kind:"meta",cells:["تاريخ التقرير",new Date().toLocaleString("ar-SY")]},{kind:"blank",cells:[]},{kind:"header",cells:["البيان","التفاصيل"]}];
+ const add=(label,value)=>rows.push({kind:"data",cells:[label,String(value??"")]});
+ const addSection=name=>rows.push({kind:"section",cells:[name]});
  const tables=[...clone.querySelectorAll("table")];
- if(tables.length)tables.forEach(table=>table.querySelectorAll("tr").forEach(tr=>{const cells=[...tr.querySelectorAll("th,td")].map(c=>c.innerText.trim());if(cells.some(Boolean))rows.push(cells);}));
- else{
-  const selectors=[".supplier-record-group",".supplier-report-card",".invoice-register-card",".invoice-row",".debt-row",".supplier-credit-row",".return-row",".statement-entry",".report-currency-card",".report-count-card"];
-  const cards=[...clone.querySelectorAll(selectors.join(","))].filter(el=>!el.parentElement?.closest(selectors.join(",")));
-  (cards.length?cards:[clone]).forEach(card=>{const lines=(card.innerText||card.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean);if(lines.length)rows.push(lines);});
+ if(tables.length){
+  tables.forEach((table,index)=>{
+   addSection("السجل رقم "+(index+1));
+   const trs=[...table.querySelectorAll("tr")];
+   trs.forEach((tr,i)=>rows.push({kind:i===0?"tablehead":"data",cells:[...tr.querySelectorAll("th,td")].map(c=>c.innerText.trim())}));
+  });
+ }else{
+  const counts=[...clone.querySelectorAll(".report-count-card")];
+  if(counts.length){addSection("ملخص التقرير");counts.forEach(card=>add(card.querySelector("span")?.innerText||"المؤشر",card.querySelector("b")?.innerText||""));}
+  const currencies=[...clone.querySelectorAll(".report-currency-card")];
+  currencies.forEach(card=>{
+   addSection("ملخص العملة: "+(card.querySelector("h3")?.innerText||""));
+   card.querySelectorAll(".report-metrics>div").forEach(metric=>add(metric.querySelector("small")?.innerText||"البند",metric.querySelector("b")?.innerText||""));
+  });
+  const suppliers=[...clone.querySelectorAll(".supplier-report-card")];
+  suppliers.forEach(card=>{
+   addSection("المورد: "+(card.querySelector(".supplier-report-card-head b")?.innerText||""));
+   add("العملة",card.querySelector(".supplier-report-card-head span")?.innerText||"");
+   card.querySelectorAll(".supplier-report-card-metrics span").forEach(metric=>{
+    const label=metric.cloneNode(true);label.querySelector("b")?.remove();
+    add(label.innerText.trim(),metric.querySelector("b")?.innerText||"");
+   });
+  });
+  if(!counts.length&&!currencies.length&&!suppliers.length){
+   const selectors=[".supplier-record-group",".invoice-register-card",".invoice-row",".debt-row",".supplier-credit-row",".return-row",".statement-entry",".supplier-profile-card",".supplier-card"];
+   const cards=[...clone.querySelectorAll(selectors.join(","))].filter(el=>!el.parentElement?.closest(selectors.join(",")));
+   (cards.length?cards:[clone]).forEach((card,index)=>{
+    const heading=card.querySelector("h2,h3,h4,b,strong")?.innerText?.trim();
+    addSection(heading||("السجل "+(index+1)));
+    const lines=(card.innerText||card.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean);
+    lines.forEach((line,i)=>{
+     const parts=line.split(/\s{2,}|:\s*/);
+     add(parts.length>1?parts.shift():("تفصيل "+(i+1)),parts.join(" "));
+    });
+   });
+  }
  }
- if(rows.length<=3)(clone.innerText||clone.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean).forEach(x=>rows.push([x]));
+ if(rows.length===4){addSection("بيانات التبويب");(clone.innerText||clone.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean).forEach((line,i)=>add("بيان "+(i+1),line));}
  return rows;
 }
 function supplierZip(files){
@@ -276,14 +309,19 @@ function supplierExportExcel(){
  const {clone,title}=supplierExportCleanClone(),rows=supplierExportRows(clone,title);
  const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
  const col=n=>{let s="";for(;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
- const maxCols=Math.max(1,...rows.map(r=>r.length)),maxRows=Math.max(1,rows.length);
- const sheetRows=rows.map((row,i)=>'<row r="'+(i+1)+'">'+row.map((v,j)=>'<c r="'+col(j+1)+(i+1)+'" t="inlineStr"><is><t xml:space="preserve">'+esc(v)+'</t></is></c>').join("")+'</row>').join("");
+ const maxCols=Math.max(2,...rows.map(r=>r.cells.length)),maxRows=rows.length;
+ const style={title:1,meta:2,header:3,section:4,tablehead:3,data:5,blank:0};
+ const sheetRows=rows.map((row,i)=>{
+  const cells=row.cells.length?row.cells:[""];
+  return '<row r="'+(i+1)+'"'+(row.kind==="title"?' ht="34" customHeight="1"':row.kind==="section"?' ht="25" customHeight="1"':'')+'>'+cells.map((v,j)=>'<c r="'+col(j+1)+(i+1)+'" s="'+(style[row.kind]??5)+'" t="inlineStr"><is><t xml:space="preserve">'+esc(v)+'</t></is></c>').join("")+'</row>';
+ }).join("");
  const files={
- "[Content_Types].xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+ "[Content_Types].xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
  "_rels/.rels":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
- "xl/workbook.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="تقرير الموردين" sheetId="1" r:id="rId1"/></sheets></workbook>',
- "xl/_rels/workbook.xml.rels":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
- "xl/worksheets/sheet1.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews><cols><col min="1" max="'+maxCols+'" width="26" customWidth="1"/></cols><sheetData>'+sheetRows+'</sheetData><autoFilter ref="A1:'+col(maxCols)+maxRows+'"/></worksheet>'
+ "xl/workbook.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="تقرير المتجر" sheetId="1" r:id="rId1"/></sheets></workbook>',
+ "xl/_rels/workbook.xml.rels":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+ "xl/styles.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="11"/><name val="Arial"/><color rgb="FF211D18"/></font><font><b/><sz val="16"/><name val="Arial"/><color rgb="FFFFFFFF"/></font><font><b/><sz val="11"/><name val="Arial"/><color rgb="FF80563D"/></font></fonts><fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF211D18"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF0E9DD"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE8F0E9"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFE5DED3"/></left><right style="thin"><color rgb="FFE5DED3"/></right><top style="thin"><color rgb="FFE5DED3"/></top><bottom style="thin"><color rgb="FFE5DED3"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="1" applyAlignment="1"><alignment horizontal="center" vertical="center" readingOrder="2" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="3" borderId="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>',
+ "xl/worksheets/sheet1.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView rightToLeft="1" showGridLines="0" workbookViewId="0"><pane ySplit="4" topLeftCell="A5" activePane="bottomRight" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="34" customWidth="1"/><col min="2" max="'+(maxCols-1)+'" width="28" customWidth="1"/></cols><sheetData>'+sheetRows+'</sheetData><mergeCells count="1"><mergeCell ref="A1:'+col(maxCols)+'1"/></mergeCells></worksheet>'
  };
  const blob=supplierZip(files),url=URL.createObjectURL(blob),a=document.createElement("a");
  a.href=url;a.download="تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xlsx";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
