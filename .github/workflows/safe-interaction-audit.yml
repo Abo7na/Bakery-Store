@@ -3,7 +3,7 @@ name: Safe interaction audit
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, fix/technical-issues]
 
 permissions:
   contents: read
@@ -17,13 +17,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Check JavaScript syntax
+        run: |
+          for file in js/*.js js/admin/*.js; do
+            node --check "$file"
+          done
+      - name: Start local preview of checked-out branch
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/bakery-preview.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4173/ > /dev/null
       - name: Install Playwright
         run: |
           npm install --no-save playwright
           npx playwright install --with-deps chromium
       - name: Run non-destructive interaction checks
         env:
-          SITE_URL: https://bakery-store-czu.pages.dev
+          SITE_URL: http://127.0.0.1:4173
         run: |
           mkdir -p interaction-results
           node <<'NODE'
@@ -51,8 +66,14 @@ jobs:
                 if (!active) throw new Error(label + ': tab did not become active: ' + name);
                 const panel = page.locator(panelSelector + '[' + attr.replace('tab','panel') + '="' + name + '"]');
                 if (await panel.count()) {
-                  const hidden = await panel.evaluate(el => el.classList.contains('is-hidden') || el.classList.contains('is-tab-hidden') || el.hidden);
-                  if (hidden) throw new Error(label + ': matching panel stayed hidden: ' + name);
+                  // Some tabs intentionally share a panel key (e.g. materials edit + list).
+                  // Pass when at least one matching panel is visible; avoid strict-mode errors.
+                  const hasVisiblePanel = await panel.evaluateAll(els => els.some(el => {
+                    const style = getComputedStyle(el);
+                    return !el.hidden && style.display !== 'none' && style.visibility !== 'hidden' &&
+                      !el.classList.contains('is-hidden') && !el.classList.contains('is-tab-hidden');
+                  }));
+                  if (!hasVisiblePanel) throw new Error(label + ': no visible matching panel: ' + name);
                 }
                 results.push({ test: label + ' tab ' + name, status: 'passed' });
               }
@@ -93,9 +114,11 @@ jobs:
             {
               const page = await openPage('/admin/inventory.html');
               await checkTabs(page, '[data-inventory-tab]', '[data-inventory-panel]', 'data-inventory-tab', ['materials','add','supply','movements','low','out'], 'Inventory');
+              await page.locator('[data-inventory-tab="materials"]').click();
               await page.locator('#inventorySearch').fill('اختبار غير موجود');
               await page.locator('#materialStatusFilter').selectOption('low');
               await page.locator('#resetMaterialsFilters').click();
+              await page.locator('[data-inventory-tab="movements"]').click();
               await page.locator('#movementFilter').selectOption('add');
               await page.locator('#applyMovementFilters').click();
               await page.locator('#resetMovementFilters').click();
@@ -108,9 +131,173 @@ jobs:
             {
               const page = await openPage('/admin/suppliers.html');
               await checkTabs(page, '[data-tab]', '[data-panel]', 'data-tab', ['suppliers','addSupplier','newInvoice','invoices','debts','credits','returns','reports'], 'Suppliers');
+              await page.locator('[data-tab="suppliers"]').click();
               await page.locator('#supplierSearch').fill('اسم غير موجود للاختبار');
               results.push({ test: 'Supplier search input responds', status: 'passed' });
               await page.screenshot({ path: 'interaction-results/suppliers-mobile.png', fullPage: true });
+              await page.close();
+            }
+
+            // Financial regressions use isolated, synthetic browser storage only.
+            // Direct-sale full return must restore stock once and record a pending refund.
+            {
+              const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+              const seed = {
+                products: [{ id: 'audit-product', name: 'منتج اختبار', price: 100, stock: 4 }],
+                directSales: [{
+                  id: 'audit-sale', number: 'INV-AUDIT', createdAt: new Date().toISOString(),
+                  customer: 'اختبار', payment: 'cash', exchangeRate: 1000, total: 100,
+                  items: [{ productId: 'audit-product', name: 'منتج اختبار', price: 100, qty: 1 }]
+                }],
+                orders: [], cart: {}, stockMovements: [], rawMaterials: [],
+                rawMaterialMovements: [], settings: { shop_name: 'اختبار', usd_rate: 1000 }
+              };
+              await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
+              const saleDialogs = [], salePageErrors = [];
+              page.on('dialog', async dialog => { saleDialogs.push(dialog.type()); await (dialog.type() === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept()); });
+              page.on('pageerror', error => salePageErrors.push(error.message));
+              const response = await page.goto(new URL('/admin/sales.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+              if (!response || response.status() >= 400) throw new Error('Sales test page failed to load');
+              await page.locator('[data-return-sale="audit-sale"]').waitFor({ state: 'visible', timeout: 15000 });
+              const seedCheck = await page.evaluate(() => JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}').directSales?.some(i => i.id === 'audit-sale'));
+              await page.locator('[data-return-sale="audit-sale"]').click();
+              await page.waitForTimeout(200);
+              const result = await page.evaluate(() => {
+                const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
+                return {
+                  stock: s.products?.find(p => p.id === 'audit-product')?.stock,
+                  voided: !!s.directSales?.find(i => i.id === 'audit-sale')?.voidedAt,
+                  returnAmount: s.directSaleReturns?.find(r => r.invoiceId === 'audit-sale')?.amount,
+                  refundStatus: s.directSaleReturns?.find(r => r.invoiceId === 'audit-sale')?.refundStatus,
+                  movement: s.stockMovements?.some(m => m.type === 'sale_return' && m.reference === 'INV-AUDIT')
+                };
+              });
+              if (result.stock !== 5 || !result.voided || result.returnAmount !== 100 || result.refundStatus !== 'pending' || !result.movement) {
+                throw new Error('Direct-sale return regression failed: ' + JSON.stringify({ result, seedCheck, saleDialogs, salePageErrors }));
+              }
+              results.push({ test: 'Direct-sale return restores stock and records pending refund', status: 'passed' });
+              await page.close();
+            }
+
+            // Accepted electronic order cancellation must reverse the earlier stock deduction.
+            {
+              const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+              const seed = {
+                products: [{ id: 'audit-order-product', name: 'منتج طلب اختبار', price: 100, stock: 2 }],
+                orders: [{
+                  id: 'ORD-AUDIT', status: 'قيد التنفيذ', stockDeducted: true,
+                  createdAt: new Date().toISOString(), customer: 'اختبار', phone: '000',
+                  total: 100, subtotal: 100, delivery: 0, items: [
+                    { productId: 'audit-order-product', name: 'منتج طلب اختبار', price: 100, qty: 1 }
+                  ]
+                }],
+                directSales: [], cart: {}, stockMovements: [], rawMaterials: [],
+                rawMaterialMovements: [], settings: { shop_name: 'اختبار', delivery_fee: 0 }
+              };
+              await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
+              page.on('dialog', dialog => dialog.type() === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
+              const response = await page.goto(new URL('/admin/orders.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+              if (!response || response.status() >= 400) throw new Error('Orders test page failed to load');
+              await page.locator('#adminOrders .order-card summary').click();
+              await page.locator('[data-cancel-order="ORD-AUDIT"]').waitFor({ state: 'visible', timeout: 15000 });
+              await page.locator('[data-cancel-order="ORD-AUDIT"]').click();
+              const result = await page.evaluate(() => {
+                const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
+                const order = s.orders?.find(o => o.id === 'ORD-AUDIT');
+                return {
+                  stock: s.products?.find(p => p.id === 'audit-order-product')?.stock,
+                  status: order?.status,
+                  restored: order?.stockRestored,
+                  movement: s.stockMovements?.some(m => m.type === 'order_cancel' && m.reference === 'ORD-AUDIT')
+                };
+              });
+              if (result.stock !== 3 || result.status !== 'ملغى' || !result.restored || !result.movement) {
+                throw new Error('Order cancellation regression failed: ' + JSON.stringify(result));
+              }
+              results.push({ test: 'Accepted order cancellation restores stock once', status: 'passed' });
+              await page.close();
+            }
+
+            // Supplier reversals: cancel a credit application, cash recovery, then the source payment.
+            {
+              const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+              const date = new Date().toISOString();
+              const seed = {
+                products: [], orders: [], directSales: [], cart: {}, stockMovements: [],
+                rawMaterials: [], rawMaterialMovements: [],
+                suppliers: [{ id: 'audit-supplier', name: 'مورد اختبار' }],
+                purchaseInvoices: [
+                  { id: 'audit-source', supplierId: 'audit-supplier', materialId: 'mat-a', materialName: 'طحين', unit: 'كغ', quantity: 10, total: 100, paid: 150, due: 0, currency: 'SYP', unitPrice: 10, date: '2026-11-22', createdAt: date, payments: [{ amount: 150, date, currency: 'SYP', kind: 'initial' }] },
+                  { id: 'audit-target', supplierId: 'audit-supplier', materialId: 'mat-b', materialName: 'سكر', unit: 'كغ', quantity: 1, total: 30, paid: 0, due: 0, currency: 'SYP', unitPrice: 30, date: '2026-11-22', createdAt: date, payments: [] }
+                ],
+                supplierReturns: [],
+                supplierRecoveries: [{ id: 'audit-recovery', invoiceId: 'audit-source', supplierId: 'audit-supplier', amount: 20, currency: 'SYP', date, status: 'active' }],
+                supplierCreditApplications: [{ id: 'audit-application', supplierId: 'audit-supplier', sourceInvoiceId: 'audit-source', targetInvoiceId: 'audit-target', amount: 30, currency: 'SYP', date, status: 'active' }],
+                settings: { shop_name: 'اختبار', delivery_fee: 0 }
+              };
+              await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
+              page.on('dialog', dialog => dialog.type() === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
+              const response = await page.goto(new URL('/admin/suppliers.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+              if (!response || response.status() >= 400) throw new Error('Supplier regression page failed to load');
+              await page.locator('[data-tab="credits"]').click();
+              await page.locator('[data-void-credit-application="audit-application"]').waitFor({ state: 'visible', timeout: 15000 });
+              await page.locator('[data-void-credit-application="audit-application"]').click();
+              await page.locator('[data-void-supplier-recovery="audit-recovery"]').waitFor({ state: 'visible', timeout: 15000 });
+              await page.locator('[data-void-supplier-recovery="audit-recovery"]').click();
+              await page.locator('[data-tab="invoices"]').click();
+              const paymentAction = page.locator('[data-void-supplier-payment="audit-source"]');
+              await paymentAction.evaluate(el => el.closest('details.payment-history')?.querySelector('summary')?.click());
+              await paymentAction.waitFor({ state: 'visible', timeout: 15000 });
+              await page.locator('[data-void-supplier-payment="audit-source"]').click();
+              const result = await page.evaluate(() => {
+                const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
+                const source = s.purchaseInvoices?.find(x => x.id === 'audit-source');
+                const target = s.purchaseInvoices?.find(x => x.id === 'audit-target');
+                return {
+                  paid: source?.paid, sourceDue: source?.due, targetDue: target?.due,
+                  paymentVoided: source?.payments?.[0]?.status === 'void',
+                  recoveryVoided: s.supplierRecoveries?.[0]?.status === 'void',
+                  applicationVoided: s.supplierCreditApplications?.[0]?.status === 'void'
+                };
+              });
+              if (result.paid !== 0 || result.sourceDue !== 100 || result.targetDue !== 30 ||
+                  !result.paymentVoided || !result.recoveryVoided || !result.applicationVoided) {
+                throw new Error('Supplier reversal regression failed: ' + JSON.stringify(result));
+              }
+              results.push({ test: 'Supplier payment, recovery and credit settlement reversals', status: 'passed' });
+              await page.close();
+            }
+
+            // Weighted-average material cost must preserve the old stock value and receipt cost separately.
+            {
+              const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+              const seed = {
+                products: [], orders: [], directSales: [], cart: {}, stockMovements: [],
+                rawMaterials: [{ id: 'audit-material', name: 'طحين اختبار', unit: 'كغ', quantity: 10, minimum: 2, unitPrice: 2, priceCurrency: 'SYP' }],
+                rawMaterialMovements: [], settings: { shop_name: 'اختبار', delivery_fee: 0 }
+              };
+              await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
+              page.on('dialog', dialog => dialog.accept());
+              const response = await page.goto(new URL('/admin/inventory.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+              if (!response || response.status() >= 400) throw new Error('Inventory cost regression page failed to load');
+              await page.locator('[data-inventory-tab="supply"]').click();
+              await page.locator('#inventoryProduct').selectOption('audit-material');
+              await page.locator('#inventoryForm [name="action"]').selectOption('add');
+              await page.locator('#inventoryQuantityInput').fill('10');
+              await page.locator('#inventoryForm [name="purchaseTotal"]').fill('60');
+              await page.locator('#inventoryForm [name="purchaseCurrency"]').selectOption('SYP');
+              await page.locator('#inventoryForm button[type="submit"]').click();
+              const result = await page.evaluate(() => {
+                const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
+                const m = s.rawMaterials?.find(x => x.id === 'audit-material');
+                const movement = s.rawMaterialMovements?.[0];
+                return { quantity: m?.quantity, weightedUnitPrice: m?.unitPrice, receiptUnitPrice: movement?.purchaseUnitPrice, valuationUnitPrice: movement?.stockValuationUnitPrice, valuationTotal: movement?.stockValuationTotal };
+              });
+              if (result.quantity !== 20 || result.weightedUnitPrice !== 4 || result.receiptUnitPrice !== 6 ||
+                  result.valuationUnitPrice !== 4 || result.valuationTotal !== 80) {
+                throw new Error('Weighted-average cost regression failed: ' + JSON.stringify(result));
+              }
+              results.push({ test: 'Weighted-average material cost calculation', status: 'passed' });
               await page.close();
             }
 
@@ -128,7 +315,7 @@ jobs:
               await page.close();
             }
 
-            const report = { auditedAt: new Date().toISOString(), site: process.env.SITE_URL, safety: 'No forms submitted; no sale, purchase, return, stock, payment, or delete actions performed.', results, pageErrors: errors };
+            const report = { auditedAt: new Date().toISOString(), site: process.env.SITE_URL, safety: 'Finance regression tests used synthetic data in isolated browser storage only; no live store data, external payments, or deployed site data were changed.', results, pageErrors: errors };
             fs.writeFileSync('interaction-results/report.json', JSON.stringify(report, null, 2));
             await browser.close();
             console.log(JSON.stringify(report, null, 2));
