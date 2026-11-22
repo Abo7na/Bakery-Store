@@ -46,7 +46,7 @@
  <div class="admin-section-head"><div><h2>تقارير الموردين والمشتريات</h2><span class="muted">ملخص مالي حسب الفترة المحددة</span></div><button class="outline" type="button" id="printSupplierReport">طباعة التقرير</button></div>
  <div class="supplier-filters report-filters">
   <label>من تاريخ<input type="date" id="reportDateFrom"></label>
-  <label>إلى تاريخ<input type="date" id="reportDateTo"></label>
+  <label>إلى تاريخ<input type="date" id="reportDateTo"></label><select id="reportSupplierFilter" aria-label="تصفية التقرير حسب المورد"><option value="all">كل الموردين</option></select><select id="reportCurrencyFilter" aria-label="تصفية التقرير حسب العملة"><option value="all">كل العملات</option><option value="USD">الدولار</option><option value="SYP">الليرة السورية</option></select>
   <button type="button" class="outline" id="resetReportDates">هذا الشهر</button>
  </div>
  <div id="reportCounts" class="report-counts"></div>
