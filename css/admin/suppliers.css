@@ -9,3 +9,51 @@
 .supplier-tab.active{border-color:#e4d7c7;background:#fff;color:#29231e;font-weight:800;box-shadow:0 2px 7px #392b1b12}
 .supplier-tab.active span{background:#eee8df;color:#29231e}
 @media(max-width:760px){.supplier-tabs{gap:5px;margin:0 -13px 16px;padding:7px 10px;border-radius:0 0 13px 13px}.supplier-tab{padding:9px 12px;font-size:12px;min-height:0}}
+
+
+/* Compact, calmer supplier and purchase forms */
+.suppliers-main .admin-card{padding:22px;margin-bottom:16px;border-radius:16px}
+.suppliers-main .admin-card h2{font-size:19px;line-height:1.5;margin-bottom:16px}
+.suppliers-main .admin-section-head{align-items:center;flex-direction:row;margin-bottom:14px}
+.suppliers-main .admin-section-head h2{margin:0}
+.suppliers-main .primary,.suppliers-main .outline{padding:9px 15px;border-radius:9px;font-size:13px;line-height:1.5}
+.suppliers-main .formgrid{gap:15px 14px}
+.suppliers-main .formgrid label{gap:6px;font-size:12px;color:#51473d}
+.suppliers-main .formgrid input,.suppliers-main .formgrid select,.suppliers-main .formgrid textarea{min-height:46px;padding:9px 12px;border:1px solid #e5ded3;border-radius:10px;background:#fffdfb;font-size:14px;line-height:1.5;transition:border-color .15s,box-shadow .15s}
+.suppliers-main .formgrid textarea{min-height:82px;resize:vertical}
+.suppliers-main .formgrid input:focus,.suppliers-main .formgrid select:focus,.suppliers-main .formgrid textarea:focus{outline:none;border-color:#b98b69;box-shadow:0 0 0 3px #b98b691a}
+.suppliers-main .form-actions{gap:9px;flex-wrap:wrap;margin-top:2px}
+.suppliers-main .form-actions button{min-height:42px}
+.supplier-hint{margin:-5px 0 18px;padding:10px 12px;border-radius:10px;background:#faf5ee;line-height:1.8}
+.supplier-list{gap:12px}
+.supplier-row,.invoice-row{padding:16px;border:1px solid #eadfd2;border-radius:14px;background:#fffaf5}
+.supplier-row b,.invoice-row b{font-size:15px;line-height:1.6}
+.supplier-row small,.invoice-row small{font-size:12px;line-height:1.8}
+.supplier-actions{gap:8px}
+.supplier-actions button{min-width:88px;padding:7px 13px;border-radius:9px;font-size:13px;line-height:1.5}
+.invoice-preview{padding:12px 14px;border:1px solid #efdfca;border-radius:12px;font-size:14px;line-height:1.8}
+.empty-suppliers{padding:22px 14px;border-radius:12px;font-size:13px}
+@media(max-width:760px){
+ .suppliers-main{padding:18px 13px}
+ .suppliers-main .admin-card{padding:17px 15px;margin-bottom:13px;border-radius:15px}
+ .suppliers-main .admin-card h2{font-size:17px;margin-bottom:13px}
+ .suppliers-main .admin-section-head{align-items:center;flex-direction:row}
+ .suppliers-main .primary,.suppliers-main .outline{padding:8px 12px;font-size:12px}
+ .suppliers-main .formgrid{gap:12px}
+ .suppliers-main .formgrid label{font-size:12px}
+ .suppliers-main .formgrid input,.suppliers-main .formgrid select{min-height:43px;padding:8px 11px;font-size:14px}
+ .suppliers-main .formgrid textarea{min-height:72px;padding:9px 11px}
+ .suppliers-main .form-actions{display:flex;flex-direction:row}
+ .suppliers-main .form-actions button{flex:0 1 auto;min-height:40px}
+ .supplier-row,.invoice-row{padding:14px;gap:10px}
+ .supplier-row b,.invoice-row b{font-size:14px}
+ .supplier-row small,.invoice-row small{font-size:11px}
+ .supplier-actions{width:100%;gap:8px}
+ .supplier-actions button{flex:1;min-width:0;padding:7px 10px;font-size:12px}
+ .invoice-preview{font-size:13px;padding:11px 12px}
+}
+@media(max-width:420px){
+ .suppliers-main .admin-card{padding:15px 12px}
+ .suppliers-main .admin-section-head{gap:8px}
+ .supplier-actions button{padding:6px 8px}
+}
