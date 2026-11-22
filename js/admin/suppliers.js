@@ -47,7 +47,7 @@ function groupSupplierRecords(containerId){
 }
 ["invoicesList","debtsList","creditsList","returnsList","supplierReportRows"].forEach(id=>{const root=$id(id);if(root)root.addEventListener("click",e=>{const button=e.target.closest("[data-view-statement]");if(button)renderStatement(button.dataset.viewStatement)})});
 function populateSupplierFilters(){
- ["invoiceSupplierFilter","debtSupplierFilter","creditSupplierFilter","returnSupplierFilter"].forEach(id=>{
+ ["invoiceSupplierFilter","debtSupplierFilter","creditSupplierFilter","returnSupplierFilter","reportSupplierFilter"].forEach(id=>{
   const select=$id(id);if(!select)return;const selected=select.value||"all";
   select.innerHTML='<option value="all">كل الموردين</option>'+state.suppliers.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join("");
   select.value=state.suppliers.some(s=>s.id===selected)?selected:"all";
@@ -56,10 +56,10 @@ function populateSupplierFilters(){
 function reportDateValue(v){return String(v||"").slice(0,10)}
 function reportInRange(v,from,to){const d=reportDateValue(v);return !!d&&(!from||d>=from)&&(!to||d<=to)}
 function renderSupplierReport(){
- const from=$id("reportDateFrom").value,to=$id("reportDateTo").value;
+ const from=$id("reportDateFrom").value,to=$id("reportDateTo").value,supplierFilter=$id("reportSupplierFilter").value,currencyFilter=$id("reportCurrencyFilter").value;
  if(from&&to&&from>to){$id("supplierReportTotals").innerHTML='<div class="empty-suppliers">تاريخ البداية يجب أن يسبق تاريخ النهاية.</div>';$id("supplierReportRows").innerHTML="";return}
- const invoices=state.purchaseInvoices.filter(x=>reportInRange(x.date||x.createdAt,from,to));
- const returns=state.supplierReturns.filter(r=>r.status!=="void"&&reportInRange(r.date||r.createdAt,from,to));
+ const invoices=state.purchaseInvoices.filter(x=>reportInRange(x.date||x.createdAt,from,to)&&(supplierFilter==="all"||x.supplierId===supplierFilter)&&(currencyFilter==="all"||(x.currency||"SYP")===currencyFilter));
+ const returns=state.supplierReturns.filter(r=>r.status!=="void"&&reportInRange(r.date||r.createdAt,from,to)&&(supplierFilter==="all"||r.supplierId===supplierFilter)&&(currencyFilter==="all"||(r.currency||"SYP")===currencyFilter));
  const currencies=new Set(),totals={},supplierRows={};
  const getTotal=c=>totals[c]||(totals[c]={purchases:0,returns:0,paid:0,returnCredits:0,due:0,credit:0});
  const getSupplier=(id,name,c)=>{const key=id+"|"+c;return supplierRows[key]||(supplierRows[key]={supplierId:id,name:name||"مورد",currency:c,purchases:0,returns:0,paid:0,returnCredits:0,due:0,credit:0})};
@@ -77,7 +77,7 @@ function renderSupplierReport(){
   currencies.add(c);t.returns+=amount;t.returnCredits+=amount;row.returns+=amount;row.returnCredits+=amount;
  });
  // Cash payments are period transactions, even when they settle an older invoice.
- state.purchaseInvoices.forEach(x=>{
+ state.purchaseInvoices.filter(x=>(supplierFilter==="all"||x.supplierId===supplierFilter)&&(currencyFilter==="all"||(x.currency||"SYP")===currencyFilter)).forEach(x=>{
   const c=x.currency||"SYP",s=state.suppliers.find(v=>v.id===x.supplierId);
   const cashPayments=(Array.isArray(x.payments)?x.payments:[]).filter(p=>p.kind!=="return");
   let recordedCash=0;
@@ -228,7 +228,7 @@ inf.addEventListener("submit",e=>{
 let migratedPayments=false,migratedReturns=false;state.purchaseInvoices.forEach(x=>{const count=Array.isArray(x.payments)?x.payments.length:0;ensurePaymentHistory(x);if(x.payments.length!==count)migratedPayments=true;const oldQty=Number(x.returnedQuantity)||0,oldTotal=Number(x.returnedTotal)||0;recalculateInvoiceBalance(x);if(Number(x.returnedQuantity)!==oldQty||Number(x.returnedTotal)!==oldTotal)migratedReturns=true});if(migratedPayments||migratedReturns)save();
 renderSuppliers();renderMaterials();renderInvoices();renderReturns();renderSupplierCredits();
 const validTabs=["suppliers","addSupplier","newInvoice","invoices","debts","credits","returns","reports"];const requestedTab=String(location.hash||"").replace(/^#/,"");if(validTabs.includes(requestedTab)){tab(requestedTab);if(requestedTab==="reports")renderSupplierReport()}else tab("suppliers");
-setReportMonth();$id("reportDateFrom").addEventListener("change",renderSupplierReport);$id("reportDateTo").addEventListener("change",renderSupplierReport);$id("resetReportDates").addEventListener("click",setReportMonth);$id("printSupplierReport").addEventListener("click",()=>{document.body.classList.add("printing-supplier-report");window.print();setTimeout(()=>document.body.classList.remove("printing-supplier-report"),800)});
+setReportMonth();$id("reportDateFrom").addEventListener("change",renderSupplierReport);$id("reportDateTo").addEventListener("change",renderSupplierReport);$id("reportSupplierFilter").addEventListener("change",renderSupplierReport);$id("reportCurrencyFilter").addEventListener("change",renderSupplierReport);$id("resetReportDates").addEventListener("click",setReportMonth);$id("printSupplierReport").addEventListener("click",()=>{document.body.classList.add("printing-supplier-report");window.print();setTimeout(()=>document.body.classList.remove("printing-supplier-report"),800)});
 // Preserve the exact scroll position when refreshing the suppliers page.
 try{const scrollKey="supplier-scroll:"+location.pathname+location.hash;history.scrollRestoration="manual";window.addEventListener("pagehide",()=>sessionStorage.setItem(scrollKey,String(window.scrollY)));const savedScroll=sessionStorage.getItem(scrollKey);if(savedScroll!==null){sessionStorage.removeItem(scrollKey);const y=Math.max(0,Number(savedScroll)||0);requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo({top:y,left:0,behavior:"instant"})))}}catch(e){}
 })();
