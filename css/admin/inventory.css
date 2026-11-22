@@ -142,3 +142,26 @@
 #movementFilters label:nth-child(5){grid-area:to!important}
 #movementFilters button{grid-area:reset!important}
 @media(max-width:380px){#movementFilters{grid-template-columns:1fr!important;grid-template-areas:"search" "type" "material" "from" "to" "reset"!important}}
+
+/* Supply movement cards — visual language based on supplier profile cards */
+.inventory-supply-card{display:grid;gap:13px;margin:0 0 12px;padding:15px;border:1px solid #eadfd2;border-radius:15px;background:#fffaf5;box-shadow:0 2px 8px #392b1b08;min-width:0}
+.inventory-supply-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:11px;border-bottom:1px solid #eee3d7;min-width:0}
+.inventory-supply-head>div{display:grid;gap:4px;min-width:0}
+.inventory-supply-head>div b{color:#29231e;font-size:15px;overflow-wrap:anywhere}
+.inventory-supply-head>div small{color:#897d70;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
+.inventory-supply-head>strong{flex:0 0 auto;color:#287344;font-size:16px;white-space:nowrap}
+.inventory-supply-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.inventory-supply-metrics>div{display:flex;flex-direction:column;justify-content:space-between;gap:6px;min-width:0;min-height:58px;padding:10px;border:1px solid #eee3d7;border-radius:11px;background:#fffdf9}
+.inventory-supply-metrics>div span{color:#897d70;font-size:11px;line-height:1.5}
+.inventory-supply-metrics>div b{color:#40362d;font-size:14px;overflow-wrap:anywhere}
+.inventory-supply-metrics>div b.plus{color:#287344}
+.inventory-supply-metrics>.inventory-supply-unit-cost{grid-column:1/-1;min-height:48px;flex-direction:row;align-items:center}
+@media(max-width:520px){
+ .inventory-supply-card{gap:11px;padding:12px;border-radius:14px}
+ .inventory-supply-head>div b{font-size:14px}
+ .inventory-supply-head>strong{font-size:14px}
+ .inventory-supply-metrics{gap:7px}
+ .inventory-supply-metrics>div{min-height:54px;padding:9px}
+ .inventory-supply-metrics>div span{font-size:10px}
+ .inventory-supply-metrics>div b{font-size:13px}
+}
