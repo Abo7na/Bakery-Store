@@ -110,3 +110,29 @@
   .supplier-export-toolbar{align-items:flex-start;flex-direction:column}
   .supplier-export-toolbar button{width:100%}
 }
+
+/* Supplier report workspace pattern shared by relevant admin registers */
+.report-filters,.orders-filter-grid,.sales-invoice-filters,.product-filters{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;gap:10px;
+ margin:12px 0 16px;padding:13px;border:1px solid #eee3d7;border-radius:13px;background:#fcf8f2
+}
+.report-filters label,.orders-filter-grid label,.sales-invoice-filters label,.product-filters label{
+ display:grid;gap:6px;min-width:0;color:#76685a;font-size:11px;font-weight:700
+}
+.report-filters input,.report-filters select,.orders-filter-grid input,.orders-filter-grid select,
+.sales-invoice-filters input,.sales-invoice-filters select,.product-filters input,.product-filters select{
+ box-sizing:border-box;width:100%;min-width:0;min-height:42px;padding:8px 10px;border:1px solid #e4d9cd;
+ border-radius:9px;background:#fff;color:#29231e;font:inherit;font-size:12px
+}
+.report-filters button,.orders-filter-grid button,.sales-invoice-filters button,.product-filters button{
+ grid-column:1/-1;justify-self:stretch;min-height:39px
+}
+.orders-filter-grid{margin-top:0}
+@media(max-width:600px){
+ .report-filters,.orders-filter-grid,.sales-invoice-filters,.product-filters{gap:8px;padding:10px}
+ .report-filters input,.report-filters select,.orders-filter-grid input,.orders-filter-grid select,
+ .sales-invoice-filters input,.sales-invoice-filters select,.product-filters input,.product-filters select{min-height:40px}
+}
+@media(max-width:380px){
+ .report-filters,.orders-filter-grid,.sales-invoice-filters,.product-filters{grid-template-columns:1fr}
+}
