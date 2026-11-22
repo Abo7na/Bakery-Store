@@ -80,7 +80,7 @@ jobs:
                 const link = page.locator('a[href="' + href + '"]');
                 if (!(await link.count())) throw new Error('Dashboard missing navigation link: ' + href);
                 await link.click();
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForURL(url => url.pathname.endsWith('/admin/orders.html'), { timeout: 15000 });
                 if (!page.url().includes('orders.html')) throw new Error('Dashboard navigation failed: ' + href);
                 results.push({ test: 'Dashboard navigation ' + href, status: 'passed' });
                 await page.goBack();
