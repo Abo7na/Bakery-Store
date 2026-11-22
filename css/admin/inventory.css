@@ -1,3 +1,18 @@
+
+/* Supplier-grade filters for every inventory register */
+.inventory-filters{margin:12px 0 16px}
+.inventory-filters label{min-width:0}
+.inventory-filters input,.inventory-filters select{width:100%;min-width:0}
+.inventory-filters button{align-self:end;min-height:39px}
+#movementFilters{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+@media(max-width:760px){
+ .inventory-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .inventory-filters label{min-width:0}
+ .inventory-filters button{grid-column:1/-1;width:100%}
+ #movementFilters label:first-child{grid-column:1/-1}
+}
+@media(max-width:420px){.inventory-filters{grid-template-columns:1fr}#movementFilters label:first-child{grid-column:auto}}
+
 .inventory-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
 .inventory-stat{display:block;text-align:right;width:100%;padding:16px;border:1px solid #e7dac9;border-radius:12px;background:#ead9c2;color:#211d18;font:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}
 .inventory-stat:hover,.inventory-stat:focus-visible{transform:translateY(-2px);box-shadow:0 5px 16px #2b21151c;outline:2px solid #b17a50;outline-offset:2px}
