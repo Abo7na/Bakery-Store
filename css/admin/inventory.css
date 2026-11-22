@@ -134,14 +134,14 @@
 }
 
 /* Keep movement date controls on one row, matching supplier report date range */
-#movementFilters{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-areas:"search search" "type type" "material material" "from to" "reset reset"!important;direction:rtl}
-#movementFilters label:nth-child(1){grid-area:search!important}
-#movementFilters label:nth-child(2){grid-area:type!important}
-#movementFilters label:nth-child(3){grid-area:material!important}
-#movementFilters label:nth-child(4){grid-area:from!important}
-#movementFilters label:nth-child(5){grid-area:to!important}
-#movementFilters button{grid-area:reset!important}
-@media(max-width:380px){#movementFilters{grid-template-columns:1fr!important;grid-template-areas:"search" "type" "material" "from" "to" "reset"!important}}
+#movementFilters{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-areas:"type type" "material material" "from to" "search search" "reset reset"!important;direction:rtl}
+#movementFilters label:nth-child(1){grid-area:type!important}
+#movementFilters label:nth-child(2){grid-area:material!important}
+#movementFilters label:nth-child(3){grid-area:from!important}
+#movementFilters label:nth-child(4){grid-area:to!important}
+#movementFilters #applyMovementFilters{grid-area:search!important}
+#movementFilters #resetMovementFilters{grid-area:reset!important}
+@media(max-width:380px){#movementFilters{grid-template-columns:1fr!important;grid-template-areas:"type" "material" "from" "to" "search" "reset"!important}}
 
 /* Supply movement cards — visual language based on supplier profile cards */
 .inventory-supply-card{display:grid;gap:13px;margin:0 0 12px;padding:15px;border:1px solid #eadfd2;border-radius:15px;background:#fffaf5;box-shadow:0 2px 8px #392b1b08;min-width:0}
@@ -217,13 +217,4 @@
 .inventory-material-profile[hidden],.inventory-material-groups[hidden]{display:none!important}
 
 
-/* Search action for movement ledger: keep the filter panel clean */
-#movementFilters .inventory-movement-search-trigger{grid-area:search!important;justify-self:start;min-width:112px;min-height:44px;padding:9px 22px;font:inherit;font-size:13px;font-weight:700}
-.inventory-search-backdrop[hidden]{display:none!important}
-.inventory-search-backdrop{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:18px;background:#211d1880}
-.inventory-search-dialog{display:grid;gap:12px;width:min(100%,390px);padding:20px;border:1px solid #e8ded2;border-radius:15px;background:#fffaf5;box-shadow:0 18px 50px #211d1840}
-.inventory-search-dialog h3{margin:0;color:#29231e;font-size:17px}
-.inventory-search-dialog label{color:#76685a;font-size:12px;font-weight:700}
-.inventory-search-dialog input{box-sizing:border-box;width:100%;min-height:45px;padding:10px 12px;border:1px solid #e4d9cd;border-radius:9px;background:#fff;font:inherit}
-.inventory-search-dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:4px}
-@media(max-width:760px){#movementFilters .inventory-movement-search-trigger{width:100%;justify-self:stretch}}
+#movementFilters #applyMovementFilters{grid-area:search!important;width:100%;min-height:46px;font:inherit;font-size:14px;font-weight:800}
