@@ -343,7 +343,7 @@ function supplierExportReportWorkbook(){
   cells.forEach(c=>{
    if(!c){line.push("");ci++;return;}
    line.push(c.v);
-   if(c.span>1)merges.push({s:{r:ri,c:ci},e:{r:ri,c:ci+c.span-1}});
+   if(c.span>1){merges.push({s:{r:ri,c:ci},e:{r:ri,c:ci+c.span-1}});for(let k=1;k<c.span;k++)line.push(null);}
    ci+=c.span;
   });
   aoa.push(line);
