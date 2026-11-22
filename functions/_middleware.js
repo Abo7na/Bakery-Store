@@ -37,5 +37,5 @@ export async function onRequest(context) {
 
   const loginUrl = new URL("/admin-login.html", url.origin);
   loginUrl.searchParams.set("next", path + url.search);
-  return Response.redirect(loginUrl.toString(), 302);
+  return new Response(null, { status: 302, headers: { Location: loginUrl.toString(), "Cache-Control": "no-store" } });
 }
