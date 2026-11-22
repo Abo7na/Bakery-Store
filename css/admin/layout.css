@@ -21,3 +21,7 @@
 .admin-stats b{color:#8e4f34}
 .admin-notice{border-radius:11px}
 @media(max-width:760px){.admin-sidebar{background:linear-gradient(110deg,#30271f,#211b17);box-shadow:0 5px 18px #21170f22}.admin-side-nav a.active{background:#f3e7d6;color:#30271f}.admin-main{padding:20px 13px 28px}}
+
+.admin-side-logout{display:block;width:100%;margin-top:auto;padding:12px 14px;border:1px solid #ffffff40;border-radius:8px;background:transparent;color:#e8e1d8;font:inherit;font-size:14px;text-align:center;cursor:pointer}
+.admin-side-logout:hover{background:#ffffff18}
+@media(max-width:760px){.admin-side-logout{position:absolute;left:12px;top:12px;width:auto;margin:0;padding:6px 9px;font-size:11px}.admin-back-store{right:12px;left:auto}}
