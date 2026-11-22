@@ -62,3 +62,28 @@
 .inventory-tab.active{border-color:#e4d7c7;background:#fff;color:#29231e;font-weight:800;box-shadow:0 2px 7px #392b1b12}
 .inventory-tab.active span{background:#eee8df;color:#29231e}
 @media(max-width:760px){.inventory-tabs{gap:5px;margin:0 -13px 16px;padding:7px 10px;border-radius:0 0 13px 13px}.inventory-tab{padding:9px 12px;font-size:12px;min-height:0}}
+
+.inventory-export-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:10px 13px;border:1px solid #e8dfd3;border-radius:12px;background:#faf7f2;color:#756453;font-size:12px}
+.inventory-export-toolbar button{padding:8px 13px;border:1px solid #cdb99f;border-radius:9px;background:#fff;color:#68472f;font:inherit;font-weight:700;cursor:pointer}
+.inventory-export-backdrop{display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;padding:18px;background:#211d1880}
+.inventory-export-backdrop.open{display:flex}
+.inventory-export-dialog{width:min(100%,390px);padding:20px;border:1px solid #e8dfd3;border-radius:16px;background:#fffaf4;box-shadow:0 18px 55px #211d1840}
+.inventory-export-head,.inventory-export-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.inventory-export-head h3{margin:0;color:#35271f;font-size:17px}
+.inventory-export-close{border:0;background:transparent;font-size:24px;color:#80634d;cursor:pointer}
+.inventory-export-dialog p{color:#806f5e;font-size:12px}
+.inventory-export-dialog>label{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #eee5da;color:#514237;font-size:13px}
+.inventory-export-actions{justify-content:flex-end;margin-top:17px}
+.inventory-print-heading{display:none}
+@media print{
+ body.printing-inventory-export #adminSidebar,body.printing-inventory-export .inventory-tabs,body.printing-inventory-export .inventory-export-toolbar,body.printing-inventory-export .admin-notice,body.printing-inventory-export .inventory-export-backdrop{display:none!important}
+ body.printing-inventory-export .inventory-tab-panel{display:none!important}
+ body.printing-inventory-export [data-inventory-panel].is-tab-hidden{display:none!important}
+ body.printing-inventory-export [data-inventory-panel]:not(.is-tab-hidden){display:block!important;visibility:visible!important}
+ body.printing-inventory-export .inventory-print-heading{display:block!important;margin:0 0 18px;padding:0 0 10px;border-bottom:1px solid #eadfd2}
+ body.printing-inventory-export .inventory-print-shop-name{text-align:center;color:#a97812;font-family:"Traditional Arabic",serif;font-size:25pt;font-weight:bold}
+ body.printing-inventory-export .inventory-print-created-date{text-align:left;color:#8b7c6d;font-size:9pt}
+ body.printing-inventory-export .admin-card{box-shadow:none!important;border:0!important}
+ body.printing-inventory-export{background:#fff!important}
+}
+@media(max-width:600px){.inventory-export-toolbar{margin-inline:-13px;border-radius:0 0 12px 12px;padding:9px 13px}}
