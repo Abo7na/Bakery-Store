@@ -198,6 +198,7 @@ jobs:
               page.on('dialog', dialog => dialog.type() === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
               const response = await page.goto(new URL('/admin/orders.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
               if (!response || response.status() >= 400) throw new Error('Orders test page failed to load');
+              await page.locator('#adminOrders .order-card summary').click();
               await page.locator('[data-cancel-order="ORD-AUDIT"]').waitFor({ state: 'visible', timeout: 15000 });
               await page.locator('[data-cancel-order="ORD-AUDIT"]').click();
               const result = await page.evaluate(() => {
