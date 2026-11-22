@@ -213,6 +213,87 @@ jobs:
               await page.close();
             }
 
+            // Supplier reversals: cancel a credit application, cash recovery, then the source payment.
+            {
+              const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+              const date = new Date().toISOString();
+              const seed = {
+                products: [], orders: [], directSales: [], cart: {}, stockMovements: [],
+                rawMaterials: [], rawMaterialMovements: [],
+                suppliers: [{ id: 'audit-supplier', name: 'مورد اختبار' }],
+                purchaseInvoices: [
+                  { id: 'audit-source', supplierId: 'audit-supplier', materialId: 'mat-a', materialName: 'طحين', unit: 'كغ', quantity: 10, total: 100, paid: 150, due: 0, currency: 'SYP', unitPrice: 10, date: '2026-11-22', createdAt: date, payments: [{ amount: 150, date, currency: 'SYP', kind: 'initial' }] },
+                  { id: 'audit-target', supplierId: 'audit-supplier', materialId: 'mat-b', materialName: 'سكر', unit: 'كغ', quantity: 1, total: 30, paid: 0, due: 0, currency: 'SYP', unitPrice: 30, date: '2026-11-22', createdAt: date, payments: [] }
+                ],
+                supplierReturns: [],
+                supplierRecoveries: [{ id: 'audit-recovery', invoiceId: 'audit-source', supplierId: 'audit-supplier', amount: 20, currency: 'SYP', date, status: 'active' }],
+                supplierCreditApplications: [{ id: 'audit-application', supplierId: 'audit-supplier', sourceInvoiceId: 'audit-source', targetInvoiceId: 'audit-target', amount: 30, currency: 'SYP', date, status: 'active' }],
+                settings: { shop_name: 'اختبار', delivery_fee: 0 }
+              };
+              await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
+              page.on('dialog', dialog => dialog.type === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
+              const response = await page.goto(new URL('/admin/suppliers.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+              if (!response || response.status() >= 400) throw new Error('Supplier regression page failed to load');
+              await page.locator('[data-tab="credits"]').click();
+              await page.locator('[data-void-credit-application="audit-application"]').waitFor({ state: 'visible', timeout: 15000 });
+              await page.locator('[data-void-credit-application="audit-application"]').click();
+              await page.locator('[data-void-supplier-recovery="audit-recovery"]').waitFor({ state: 'visible', timeout: 15000 });
+              await page.locator('[data-void-supplier-recovery="audit-recovery"]').click();
+              await page.locator('[data-tab="invoices"]').click();
+              await page.locator('[data-void-supplier-payment="audit-source"]').waitFor({ state: 'visible', timeout: 15000 });
+              await page.locator('[data-void-supplier-payment="audit-source"]').click();
+              const result = await page.evaluate(() => {
+                const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
+                const source = s.purchaseInvoices?.find(x => x.id === 'audit-source');
+                const target = s.purchaseInvoices?.find(x => x.id === 'audit-target');
+                return {
+                  paid: source?.paid, sourceDue: source?.due, targetDue: target?.due,
+                  paymentVoided: source?.payments?.[0]?.status === 'void',
+                  recoveryVoided: s.supplierRecoveries?.[0]?.status === 'void',
+                  applicationVoided: s.supplierCreditApplications?.[0]?.status === 'void'
+                };
+              });
+              if (result.paid !== 0 || result.sourceDue !== 100 || result.targetDue !== 30 ||
+                  !result.paymentVoided || !result.recoveryVoided || !result.applicationVoided) {
+                throw new Error('Supplier reversal regression failed: ' + JSON.stringify(result));
+              }
+              results.push({ test: 'Supplier payment, recovery and credit settlement reversals', status: 'passed' });
+              await page.close();
+            }
+
+            // Weighted-average material cost must preserve the old stock value and receipt cost separately.
+            {
+              const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+              const seed = {
+                products: [], orders: [], directSales: [], cart: {}, stockMovements: [],
+                rawMaterials: [{ id: 'audit-material', name: 'طحين اختبار', unit: 'كغ', quantity: 10, minimum: 2, unitPrice: 2, priceCurrency: 'SYP' }],
+                rawMaterialMovements: [], settings: { shop_name: 'اختبار', delivery_fee: 0 }
+              };
+              await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
+              page.on('dialog', dialog => dialog.accept());
+              const response = await page.goto(new URL('/admin/inventory.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+              if (!response || response.status() >= 400) throw new Error('Inventory cost regression page failed to load');
+              await page.locator('[data-inventory-tab="supply"]').click();
+              await page.locator('#inventoryProduct').selectOption('audit-material');
+              await page.locator('#inventoryForm [name="action"]').selectOption('add');
+              await page.locator('#inventoryQuantityInput').fill('10');
+              await page.locator('#inventoryForm [name="purchaseTotal"]').fill('60');
+              await page.locator('#inventoryForm [name="purchaseCurrency"]').selectOption('SYP');
+              await page.locator('#inventoryForm button[type="submit"]').click();
+              const result = await page.evaluate(() => {
+                const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
+                const m = s.rawMaterials?.find(x => x.id === 'audit-material');
+                const movement = s.rawMaterialMovements?.[0];
+                return { quantity: m?.quantity, weightedUnitPrice: m?.unitPrice, receiptUnitPrice: movement?.purchaseUnitPrice, valuationUnitPrice: movement?.stockValuationUnitPrice, valuationTotal: movement?.stockValuationTotal };
+              });
+              if (result.quantity !== 20 || result.weightedUnitPrice !== 4 || result.receiptUnitPrice !== 6 ||
+                  result.valuationUnitPrice !== 4 || result.valuationTotal !== 80) {
+                throw new Error('Weighted-average cost regression failed: ' + JSON.stringify(result));
+              }
+              results.push({ test: 'Weighted-average material cost calculation', status: 'passed' });
+              await page.close();
+            }
+
             // Material report: report tabs and search/date filters only.
             {
               const page = await openPage('/admin/material-movements.html?materialId=__audit_nonexistent__');
