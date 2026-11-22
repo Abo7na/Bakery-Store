@@ -545,3 +545,30 @@
 
 
 .supplier-report-open{min-height:34px;padding:6px 10px;font:inherit;font-size:11px;margin:0 0 10px}
+
+
+/* Compact supplier, currency and status filters */
+.suppliers-main .supplier-filters>#invoiceSupplierFilter,
+.suppliers-main .supplier-filters>#invoiceCurrencyFilter,
+.suppliers-main .supplier-filters>#debtSupplierFilter,
+.suppliers-main .supplier-filters>#debtCurrencyFilter,
+.suppliers-main .supplier-filters>#creditSupplierFilter,
+.suppliers-main .supplier-filters>#creditCurrencyFilter,
+.suppliers-main .supplier-filters>#returnSupplierFilter,
+.suppliers-main .supplier-filters>#returnCurrencyFilter,
+.suppliers-main .supplier-filters>#reportSupplierFilter,
+.suppliers-main .supplier-filters>#reportCurrencyFilter{
+ grid-column:auto;
+ min-width:0;
+ width:100%;
+}
+.suppliers-main .supplier-filters>#returnStatusFilter{grid-column:1/-1}
+.suppliers-main .supplier-filter-reset{grid-column:1/-1;justify-self:start;min-height:36px;padding:7px 12px;font-size:11px}
+.suppliers-main .report-filters>#reportSupplierFilter,
+.suppliers-main .report-filters>#reportCurrencyFilter{grid-column:auto}
+@media(max-width:520px){
+ .suppliers-main .supplier-filter-reset{width:100%;justify-self:stretch}
+ .suppliers-main .supplier-filters>#returnStatusFilter{grid-column:1/-1}
+ .suppliers-main .report-filters>#reportSupplierFilter,
+ .suppliers-main .report-filters>#reportCurrencyFilter{grid-column:1/-1}
+}
