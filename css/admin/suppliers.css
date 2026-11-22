@@ -320,3 +320,11 @@
   .report-metrics small{font-size:10px}
   .report-metrics b{font-size:12px}
 }
+
+/* Supplier report table: keep overflow inside the table on touch screens */
+.report-table-scroll{-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain}
+.supplier-report-table{min-width:760px}
+@media(max-width:600px){
+ .report-table-scroll{max-width:100%;overflow-x:auto}
+ .supplier-report-table th,.supplier-report-table td{padding:10px 9px;font-size:11px}
+}
