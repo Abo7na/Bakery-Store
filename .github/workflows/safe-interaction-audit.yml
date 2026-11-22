@@ -1,0 +1,145 @@
+name: Safe interaction audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  interaction-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Run non-destructive interaction checks
+        env:
+          SITE_URL: https://bakery-store-czu.pages.dev
+        run: |
+          mkdir -p interaction-results
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const results = [];
+            const errors = [];
+            async function openPage(route) {
+              const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+              page.on('pageerror', e => errors.push(route + ': ' + e.message));
+              const response = await page.goto(new URL(route, process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+              if (!response || response.status() >= 400) throw new Error(route + ' returned HTTP ' + (response && response.status()));
+              await page.waitForTimeout(700);
+              return page;
+            }
+            async function checkTabs(page, buttonSelector, panelSelector, attr, names, label) {
+              for (const name of names) {
+                const button = page.locator(buttonSelector + '[' + attr + '="' + name + '"]');
+                if (!(await button.count())) throw new Error(label + ': missing tab ' + name);
+                await button.click();
+                const active = await button.evaluate(el => el.classList.contains('active'));
+                if (!active) throw new Error(label + ': tab did not become active: ' + name);
+                const panel = page.locator(panelSelector + '[' + attr.replace('tab','panel') + '="' + name + '"]');
+                if (await panel.count()) {
+                  const hidden = await panel.evaluate(el => el.classList.contains('is-hidden') || el.classList.contains('is-tab-hidden') || el.hidden);
+                  if (hidden) throw new Error(label + ': matching panel stayed hidden: ' + name);
+                }
+                results.push({ test: label + ' tab ' + name, status: 'passed' });
+              }
+            }
+
+            // Storefront: category filters only; never add items to the cart.
+            {
+              const page = await openPage('/');
+              const cats = page.locator('#filters [data-cat]');
+              const count = await cats.count();
+              if (count) {
+                await cats.nth(0).click();
+                results.push({ test: 'Storefront category filter responds', status: 'passed' });
+              } else {
+                results.push({ test: 'Storefront category filter', status: 'skipped', reason: 'No categories rendered in the clean test session' });
+              }
+              await page.screenshot({ path: 'interaction-results/storefront-mobile.png', fullPage: true });
+              await page.close();
+            }
+
+            // Dashboard: verify safe navigation links only.
+            {
+              const page = await openPage('/admin/');
+              for (const href of ['orders.html?stage=progress', 'orders.html?stage=pending']) {
+                const link = page.locator('a[href="' + href + '"]');
+                if (!(await link.count())) throw new Error('Dashboard missing navigation link: ' + href);
+                await link.click();
+                await page.waitForLoadState('domcontentloaded');
+                if (!page.url().includes('orders.html')) throw new Error('Dashboard navigation failed: ' + href);
+                results.push({ test: 'Dashboard navigation ' + href, status: 'passed' });
+                await page.goBack();
+                await page.waitForLoadState('domcontentloaded');
+              }
+              await page.close();
+            }
+
+            // Inventory: switch tabs and exercise read-only filters/reset buttons.
+            {
+              const page = await openPage('/admin/inventory.html');
+              await checkTabs(page, '[data-inventory-tab]', '[data-inventory-panel]', 'data-inventory-tab', ['materials','add','supply','movements','low','out'], 'Inventory');
+              await page.locator('#inventorySearch').fill('اختبار غير موجود');
+              await page.locator('#materialStatusFilter').selectOption('low');
+              await page.locator('#resetMaterialsFilters').click();
+              await page.locator('#movementFilter').selectOption('add');
+              await page.locator('#applyMovementFilters').click();
+              await page.locator('#resetMovementFilters').click();
+              results.push({ test: 'Inventory read-only filters and reset', status: 'passed' });
+              await page.screenshot({ path: 'interaction-results/inventory-mobile.png', fullPage: true });
+              await page.close();
+            }
+
+            // Suppliers: switch sections and type in search only; do not submit forms.
+            {
+              const page = await openPage('/admin/suppliers.html');
+              await checkTabs(page, '[data-tab]', '[data-panel]', 'data-tab', ['suppliers','addSupplier','newInvoice','invoices','debts','credits','returns','reports'], 'Suppliers');
+              await page.locator('#supplierSearch').fill('اسم غير موجود للاختبار');
+              results.push({ test: 'Supplier search input responds', status: 'passed' });
+              await page.screenshot({ path: 'interaction-results/suppliers-mobile.png', fullPage: true });
+              await page.close();
+            }
+
+            // Material report: report tabs and search/date filters only.
+            {
+              const page = await openPage('/admin/material-movements.html?materialId=__audit_nonexistent__');
+              for (const name of ['all','add','remove','set']) {
+                const tab = page.locator('[data-report-tab="' + name + '"]');
+                if (await tab.count()) {
+                  await tab.click();
+                  if (!(await tab.evaluate(el => el.classList.contains('active')))) throw new Error('Material report tab failed: ' + name);
+                  results.push({ test: 'Material report tab ' + name, status: 'passed' });
+                }
+              }
+              await page.close();
+            }
+
+            const report = { auditedAt: new Date().toISOString(), site: process.env.SITE_URL, safety: 'No forms submitted; no sale, purchase, return, stock, payment, or delete actions performed.', results, pageErrors: errors };
+            fs.writeFileSync('interaction-results/report.json', JSON.stringify(report, null, 2));
+            await browser.close();
+            console.log(JSON.stringify(report, null, 2));
+            if (errors.length) process.exitCode = 1;
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
+      - name: Upload interaction results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bakery-store-interaction-audit
+          path: interaction-results/
+          if-no-files-found: warn
+          retention-days: 7
