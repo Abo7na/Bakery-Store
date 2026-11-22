@@ -16,6 +16,7 @@
 <button class="supplier-tab" type="button" data-tab="invoices">سجل الفواتير <span id="invoiceCount">0</span></button>
 <button class="supplier-tab" type="button" data-tab="debts">الديون <span id="debtCount">0</span></button>
 <button class="supplier-tab" type="button" data-tab="returns">المرتجعات <span id="returnCount">0</span></button>
+<button class="supplier-tab" type="button" data-tab="reports">التقارير</button>
 </nav>
 <section class="admin-card supplier-panel" data-panel="suppliers"><div class="admin-section-head"><h2>الموردون المسجلون</h2><button class="primary" type="button" data-go="addSupplier">إضافة مورد</button></div><div class="supplier-filters"><input id="supplierSearch" type="search" placeholder="ابحث باسم المورد أو رقم الهاتف..." aria-label="البحث عن مورد"></div><div id="suppliersList" class="supplier-list"></div></section>
 <section class="admin-card supplier-panel is-hidden" data-panel="addSupplier"><h2 id="supplierFormTitle">إضافة مورد جديد</h2><form id="supplierForm" class="formgrid"><label>اسم المورد<input name="name" required maxlength="100" placeholder="اسم المورد أو الشركة"></label><label>رقم الهاتف<input name="phone" inputmode="tel" placeholder="رقم التواصل"></label><label>اسم المسؤول<input name="contact" placeholder="اسم الشخص المسؤول"></label><label>العنوان<input name="address" placeholder="عنوان المورد"></label><label class="wide">ملاحظات<textarea name="notes" rows="2" placeholder="معلومات إضافية عن المورد"></textarea></label><div class="wide form-actions"><button class="primary" type="submit">حفظ المورد</button><button class="outline is-hidden" id="cancelSupplierEdit" type="button">إلغاء التعديل</button></div></form></section>
@@ -34,6 +35,18 @@
 <div class="wide form-actions"><button class="primary" type="submit">تأكيد المرتجع وتحديث المخزون</button></div>
 </form>
 <div class="returns-history-head"><h3>سجل المرتجعات</h3></div><div class="supplier-filters supplier-filter-grid"><input id="returnSearch" type="search" placeholder="ابحث بالمورد أو المادة أو رقم الفاتورة"><label>من تاريخ<input id="returnDateFrom" type="date"></label><label>إلى تاريخ<input id="returnDateTo" type="date"></label></div><div id="returnsList" class="supplier-list"></div>
+</section>
+<section class="admin-card supplier-panel is-hidden" data-panel="reports">
+ <div class="admin-section-head"><div><h2>تقارير الموردين والمشتريات</h2><span class="muted">ملخص مالي حسب الفترة المحددة</span></div><button class="outline" type="button" id="printSupplierReport">طباعة التقرير</button></div>
+ <div class="supplier-filters report-filters">
+  <label>من تاريخ<input type="date" id="reportDateFrom"></label>
+  <label>إلى تاريخ<input type="date" id="reportDateTo"></label>
+  <button type="button" class="outline" id="resetReportDates">هذا الشهر</button>
+ </div>
+ <div id="reportCounts" class="report-counts"></div>
+ <div id="supplierReportTotals" class="report-currency-list"></div>
+ <div class="report-table-wrap"><h3>ملخص الموردين</h3><div id="supplierReportRows"></div></div>
+ <p class="report-note">تُعرض المشتريات حسب تاريخ الفاتورة، والمرتجعات والدفعات حسب تاريخ تسجيلها. الدين هو الرصيد الحالي للفواتير الواقعة ضمن الفترة. لا يتم جمع الدولار والليرة في إجمالي واحد.</p>
 </section>
 <section class="admin-card supplier-panel is-hidden" data-panel="statement"><div class="admin-section-head"><h2 id="statementTitle">كشف حساب المورد</h2><div class="statement-actions"><button class="primary" type="button" id="printStatement">طباعة / حفظ PDF</button><button class="outline" type="button" id="backToSuppliers">العودة للموردين</button></div></div><div id="statementSummary" class="statement-summary"></div><div id="statementLedger" class="statement-ledger"></div></section>
 </main>
