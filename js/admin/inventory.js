@@ -29,4 +29,40 @@ function activateInventoryTab(name){document.querySelectorAll("[data-inventory-t
 document.querySelectorAll("[data-inventory-tab]").forEach(btn=>btn.addEventListener("click",()=>activateInventoryTab(btn.dataset.inventoryTab)));
 activateInventoryTab("materials");
 render();
+
+function inventoryActiveTab(){return document.querySelector("[data-inventory-tab].active")?.dataset.inventoryTab||"materials"}
+function inventoryExportRows(){
+ const tab=inventoryActiveTab(),all=materials(),moves=movements();
+ if(tab==="movements")return {title:"سجل حركة المواد الأولية",headers:["المادة","نوع الحركة","الكمية","الوحدة","قبل الحركة","بعد الحركة","السبب","التاريخ"],rows:moves.filter(m=>filter.value==="all"||m.type===filter.value).map(m=>[m.materialName||"مادة محذوفة",typeLabel[m.type]||m.type,fmt(Number(m.quantity)||0),m.unit||"",fmt(Number(m.before)||0),fmt(Number(m.after)||0),m.reason||"—",m.createdAt?new Date(m.createdAt).toLocaleString("ar-SY"):""])};
+ const list=tab==="low"?all.filter(m=>qty(m)>0&&Number(m.minimum)>0&&qty(m)<=Number(m.minimum)):tab==="out"?all.filter(m=>qty(m)===0):all;
+ return {title:tab==="low"?"المواد منخفضة المخزون":tab==="out"?"المواد النافدة":"المواد الأولية",headers:["اسم المادة","الكمية الحالية","وحدة القياس","حد التنبيه","سعر الوحدة","العملة","إجمالي قيمة المخزون","الحالة"],rows:list.map(m=>{const n=qty(m),min=Number(m.minimum)||0,p=Number(m.unitPrice)||0;return [m.name,fmt(n),m.unit,min?fmt(min):"—",fmt(p),m.priceCurrency==="USD"?"USD":"SYP",fmt(n*p),n===0?"نافدة":min>0&&n<=min?"مخزون منخفض":"متوفرة"]})};
+}
+function inventoryBuildExportWorkbook(){
+ if(typeof XLSX==="undefined"||!XLSX.utils||!XLSX.write)throw new Error("مكتبة Excel غير متاحة");
+ const data=inventoryExportRows(),shop=String(state.settings?.shop_name||"مخبوزات الشام").trim(),date=new Intl.DateTimeFormat("ar-SY",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date());
+ const rows=[[shop],["تاريخ إنشاء التقرير",date],[],[data.title],data.headers,...data.rows],ws=XLSX.utils.aoa_to_sheet(rows),cols=data.headers.length;
+ ws["!cols"]=data.headers.map((_,i)=>({wch:i===0?25:16}));ws["!sheetViews"]=[{rightToLeft:true,showGridLines:false,zoomScale:90}];ws["!pageSetup"]={paperSize:9,orientation:"landscape",fitToWidth:1,fitToHeight:0};ws["!printOptions"]={horizontalCentered:true};ws["!margins"]={left:.3,right:.3,top:.45,bottom:.45,header:.15,footer:.15};
+ ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:cols-1}},{s:{r:1,c:cols-2},e:{r:1,c:cols-1}},{s:{r:3,c:0},e:{r:3,c:cols-1}}];
+ const border={bottom:{style:"thin",color:{rgb:"E8D9C9"}}},styles={shop:{font:{name:"Traditional Arabic",sz:26,bold:true,color:{rgb:"A97812"}},alignment:{horizontal:"center",vertical:"center"}},date:{font:{name:"Arial",sz:9,color:{rgb:"8B7C6D"}},alignment:{horizontal:"left",vertical:"center"}},title:{fill:{fgColor:{rgb:"35271F"}},font:{name:"Arial",sz:15,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"center",vertical:"center"}},head:{fill:{fgColor:{rgb:"80563D"}},font:{name:"Arial",sz:11,bold:true,color:{rgb:"FFFFFF"}},alignment:{horizontal:"center",vertical:"center",wrapText:true},border},cell:{font:{name:"Arial",sz:10,color:{rgb:"514237"}},alignment:{horizontal:"center",vertical:"center",wrapText:true},border}};
+ for(let r=0;r<rows.length;r++)for(let c=0;c<cols;c++){const ref=XLSX.utils.encode_cell({r,c});if(!ws[ref])ws[ref]={t:"s",v:""};ws[ref].s=r===0?styles.shop:r===1?styles.date:r===3?styles.title:r===4?styles.head:styles.cell}
+ ws["!rows"]=[{hpt:52},{hpt:23},{hpt:10},{hpt:34},{hpt:32},...data.rows.map(()=>({hpt:28}))];ws["!printArea"]="A1:"+XLSX.utils.encode_col(cols-1)+rows.length;
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"تقرير المخزون");wb.Workbook={Views:[{RTL:true}]};return wb;
+}
+function inventoryPrintCurrent(){
+ const tab=inventoryActiveTab(),panel=document.querySelector('[data-inventory-panel="'+tab+'"]');if(!panel)return;
+ const heading=document.createElement("div");heading.className="inventory-print-heading";
+ const shop=document.createElement("div");shop.className="inventory-print-shop-name";shop.textContent=String(state.settings?.shop_name||"مخبوزات الشام").trim();
+ const date=document.createElement("div");date.className="inventory-print-created-date";date.textContent="تاريخ إنشاء التقرير: "+new Intl.DateTimeFormat("ar-SY",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date());
+ heading.append(shop,date);panel.insertBefore(heading,panel.firstChild);document.body.classList.add("printing-inventory-export");
+ window.addEventListener("afterprint",()=>{document.body.classList.remove("printing-inventory-export");heading.remove()},{once:true});window.print();
+}
+function inventoryOpenExportDialog(){
+ let modal=document.getElementById("inventoryExportDialog");
+ if(!modal){modal=document.createElement("div");modal.id="inventoryExportDialog";modal.className="inventory-export-backdrop";
+ modal.innerHTML='<section class="inventory-export-dialog" role="dialog" aria-modal="true" aria-labelledby="inventoryExportTitle"><div class="inventory-export-head"><h3 id="inventoryExportTitle">تصدير بيانات المخزون</h3><button type="button" class="inventory-export-close" aria-label="إغلاق">×</button></div><p>سيتم إخراج بيانات التبويب المحدد حالياً.</p><label><input type="checkbox" value="excel" checked><span>Excel (XLSX)</span></label><label><input type="checkbox" value="pdf" checked><span>PDF (حفظ من نافذة الطباعة)</span></label><label><input type="checkbox" value="print" checked><span>طباعة</span></label><div class="inventory-export-actions"><button type="button" class="outline inventory-export-cancel">إلغاء</button><button type="button" class="primary inventory-export-confirm">متابعة</button></div></section>';
+ document.body.appendChild(modal);modal.addEventListener("click",e=>{if(e.target===modal||e.target.closest(".inventory-export-close,.inventory-export-cancel"))modal.classList.remove("open");if(e.target.closest(".inventory-export-confirm")){const selected=[...modal.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);if(!selected.length)return alert("اختر طريقة إخراج واحدة على الأقل.");modal.classList.remove("open");if(selected.includes("excel")){try{const wb=inventoryBuildExportWorkbook(),bytes=XLSX.write(wb,{bookType:"xlsx",type:"array",cellStyles:true}),blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="تقرير-المخزون-"+new Date().toISOString().slice(0,10)+".xlsx";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}catch(err){alert(err.message||"تعذر إنشاء ملف Excel.")}}if(selected.includes("pdf")||selected.includes("print"))inventoryPrintCurrent();}});}
+ modal.classList.add("open");
+}
+$("#openInventoryExport").addEventListener("click",inventoryOpenExportDialog);
+
 })();
