@@ -245,6 +245,7 @@ jobs:
               await page.locator('[data-void-supplier-recovery="audit-recovery"]').waitFor({ state: 'visible', timeout: 15000 });
               await page.locator('[data-void-supplier-recovery="audit-recovery"]').click();
               await page.locator('[data-tab="invoices"]').click();
+              await page.locator('#invoicesList details.payment-history summary').first().click();
               await page.locator('[data-void-supplier-payment="audit-source"]').waitFor({ state: 'visible', timeout: 15000 });
               await page.locator('[data-void-supplier-payment="audit-source"]').click();
               const result = await page.evaluate(() => {
