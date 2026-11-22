@@ -11,10 +11,42 @@ const fmt=n=>new Intl.NumberFormat("ar-SY",{maximumFractionDigits:2}).format(Num
 function norm(v){return String(v||"").toLocaleLowerCase("ar").replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").trim()}function inDateRange(value,from,to){const d=String(value||"").slice(0,10);return (!from||d>=from)&&(!to||d<=to)}
 function tab(name){document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));document.querySelectorAll("[data-panel]").forEach(p=>p.classList.toggle("is-hidden",p.dataset.panel!==name));}
 document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>tab(b.dataset.tab)));
+document.querySelectorAll('[data-tab="reports"]').forEach(b=>b.addEventListener("click",renderSupplierReport));
 ["supplierSearch","invoiceSearch","invoiceStatus","invoiceDateFrom","invoiceDateTo","debtSearch","debtDateFrom","debtDateTo","returnSearch","returnDateFrom","returnDateTo"].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener("input",()=>{renderSuppliers();renderInvoices();renderReturns()});el.addEventListener("change",()=>{renderSuppliers();renderInvoices();renderReturns()})}});
 document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>tab(b.dataset.go)));
 $id("backToSuppliers").addEventListener("click",()=>tab("suppliers"));
 let statementSupplierId=null;
+
+function reportDateValue(v){return String(v||"").slice(0,10)}
+function reportInRange(v,from,to){const d=reportDateValue(v);return !!d&&(!from||d>=from)&&(!to||d<=to)}
+function renderSupplierReport(){
+ const from=$id("reportDateFrom").value,to=$id("reportDateTo").value;
+ if(from&&to&&from>to){$id("supplierReportTotals").innerHTML='<div class="empty-suppliers">تاريخ البداية يجب أن يسبق تاريخ النهاية.</div>';$id("supplierReportRows").innerHTML="";return}
+ const invoices=state.purchaseInvoices.filter(x=>reportInRange(x.date||x.createdAt,from,to));
+ const invoiceIds=new Set(invoices.map(x=>x.id));
+ const returns=state.supplierReturns.filter(r=>reportInRange(r.date||r.createdAt,from,to));
+ const currencies=new Set();
+ const totals={};
+ const supplierRows={};
+ const getTotal=c=>totals[c]||(totals[c]={purchases:0,returns:0,paid:0,due:0});
+ const getSupplier=(id,name,c)=>{const key=id+"|"+c;return supplierRows[key]||(supplierRows[key]={name:name||"مورد",currency:c,purchases:0,returns:0,paid:0,due:0})};
+ invoices.forEach(x=>{
+  const c=x.currency||"SYP",s=state.suppliers.find(v=>v.id===x.supplierId),t=getTotal(c),row=getSupplier(x.supplierId,s?.name,c);
+  currencies.add(c);t.purchases+=Number(x.total)||0;t.due+=Number(x.due)||0;
+  row.purchases+=Number(x.total)||0;row.due+=Number(x.due)||0;
+  ensurePaymentHistory(x).forEach(p=>{if(p.kind==="return"||!reportInRange(p.date||x.date||x.createdAt,from,to))return;const amount=Number(p.amount)||0;t.paid+=amount;row.paid+=amount});
+ });
+ returns.forEach(r=>{
+  const c=r.currency||"SYP",s=state.suppliers.find(v=>v.id===r.supplierId),t=getTotal(c),row=getSupplier(r.supplierId,s?.name,c),amount=Number(r.amount)||0;
+  currencies.add(c);t.returns+=amount;row.returns+=amount;
+ });
+ const countHtml='<div class="report-count-card"><span>فواتير الشراء</span><b>'+invoices.length+'</b></div><div class="report-count-card"><span>المرتجعات</span><b>'+returns.length+'</b></div><div class="report-count-card"><span>الموردون</span><b>'+new Set([...invoices.map(x=>x.supplierId),...returns.map(x=>x.supplierId)]).size+'</b></div>';
+ $id("reportCounts").innerHTML=countHtml;
+ $id("supplierReportTotals").innerHTML=currencies.size?[...currencies].sort().map(c=>{const t=totals[c],net=t.purchases-t.returns;return '<article class="report-currency-card"><h3>'+cur(c)+'</h3><div class="report-metrics"><div><small>إجمالي المشتريات</small><b>'+fmt(t.purchases)+'</b></div><div><small>قيمة المرتجعات</small><b class="balance-due">− '+fmt(t.returns)+'</b></div><div><small>صافي المشتريات</small><b>'+fmt(net)+'</b></div><div><small>الدفعات خلال الفترة</small><b class="balance-paid">'+fmt(t.paid)+'</b></div><div><small>المتبقي الحالي لفواتير الفترة</small><b class="balance-due">'+fmt(t.due)+'</b></div></div></article>'}).join(""):'<div class="empty-suppliers">لا توجد مشتريات أو مرتجعات ضمن الفترة المحددة.</div>';
+ const rows=Object.values(supplierRows).sort((a,b)=>a.name.localeCompare(b.name,"ar"));
+ $id("supplierReportRows").innerHTML=rows.length?'<div class="report-table-scroll"><table class="supplier-report-table"><thead><tr><th>المورد</th><th>العملة</th><th>المشتريات</th><th>المرتجعات</th><th>الدفعات</th><th>المتبقي الحالي</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+cur(r.currency)+'</td><td>'+fmt(r.purchases)+'</td><td>'+fmt(r.returns)+'</td><td>'+fmt(r.paid)+'</td><td class="'+(r.due>0?"balance-due":"balance-paid")+'">'+fmt(r.due)+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty-suppliers">لا توجد بيانات لعرضها.</div>';
+}
+function setReportMonth(){const now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1);$id("reportDateFrom").value=first.getFullYear()+"-"+String(first.getMonth()+1).padStart(2,"0")+"-"+String(first.getDate()).padStart(2,"0");$id("reportDateTo").value=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");renderSupplierReport()}
 function renderStatement(id){
 const s=state.suppliers.find(x=>x.id===id);if(!s)return;statementSupplierId=id;
 const invoices=state.purchaseInvoices.filter(x=>x.supplierId===id);invoices.forEach(ensurePaymentHistory);
@@ -51,4 +83,5 @@ inf.elements.date.value=new Date().toISOString().slice(0,10);
 inf.addEventListener("submit",e=>{e.preventDefault();const f=new FormData(inf),s=state.suppliers.find(x=>x.id===f.get("supplierId")),m=state.rawMaterials.find(x=>x.id===f.get("materialId")),q=Number(f.get("quantity")),total=Number(f.get("total")),paid=Number(f.get("paid")),currency=String(f.get("currency"));if(!s||!m)return alert("اختر المورد والمادة.");if(!Number.isFinite(q)||q<=0||!Number.isFinite(total)||total<=0||!Number.isFinite(paid)||paid<0||paid>total)return alert("تحقق من الكمية والتكلفة والمبلغ المدفوع.");if(m.priceCurrency&&m.priceCurrency!==currency)return alert("عملة الفاتورة مختلفة عن عملة المادة. غيّر عملة المادة من صفحة المخزون أولاً.");if(!confirm("حفظ الفاتورة وتحديث كمية "+m.name+" واعتماد سعر الوحدة الجديد على كامل المخزون؟"))return;const before=Math.max(0,Number(m.quantity)||0),after=Number((before+q).toFixed(3)),unitPrice=Number((total/q).toFixed(4));m.quantity=after;m.unitPrice=unitPrice;m.priceCurrency=currency;const id="pur_"+Date.now(),invoice={id,supplierId:s.id,materialId:m.id,materialName:m.name,unit:m.unit,invoiceNo:String(f.get("invoiceNo")||"").trim(),date:String(f.get("date")),quantity:q,total,paid,due:Number((total-paid).toFixed(2)),currency,notes:String(f.get("notes")||"").trim(),unitPrice,payments:paid>0?[{amount:paid,date:new Date().toISOString(),currency,kind:"initial"}]:[],createdAt:new Date().toISOString()};state.purchaseInvoices.unshift(invoice);state.rawMaterialMovements.unshift({id:"raw_"+Date.now(),materialId:m.id,materialName:m.name,type:"add",quantity:q,unit:m.unit,before,after,reason:"فاتورة شراء رقم "+(invoice.invoiceNo||id)+" · المورد: "+s.name,createdAt:new Date().toISOString(),purchaseTotal:total,purchaseCurrency:currency,purchaseUnitPrice:unitPrice,stockValuationUnitPrice:unitPrice,stockValuationTotal:Number((after*unitPrice).toFixed(2)),invoiceId:id,supplierId:s.id});save();inf.reset();inf.elements.date.value=new Date().toISOString().slice(0,10);renderMaterials();renderInvoices();updatePreview();alert("تم حفظ فاتورة الشراء وتحديث المخزون بالسعر الجديد.");});
 let migratedPayments=false;state.purchaseInvoices.forEach(x=>{const count=Array.isArray(x.payments)?x.payments.length:0;ensurePaymentHistory(x);if(x.payments.length!==count)migratedPayments=true;if(!Number.isFinite(Number(x.returnedQuantity)))x.returnedQuantity=0;if(!Number.isFinite(Number(x.returnedTotal)))x.returnedTotal=0;recalculateInvoiceBalance(x)});if(migratedPayments)save();
 renderSuppliers();renderMaterials();renderInvoices();renderReturns();
+setReportMonth();$id("reportDateFrom").addEventListener("change",renderSupplierReport);$id("reportDateTo").addEventListener("change",renderSupplierReport);$id("resetReportDates").addEventListener("click",setReportMonth);$id("printSupplierReport").addEventListener("click",()=>{document.body.classList.add("printing-supplier-report");window.print();setTimeout(()=>document.body.classList.remove("printing-supplier-report"),800)});
 })();
