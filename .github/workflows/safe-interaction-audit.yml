@@ -17,6 +17,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Check JavaScript syntax
+        run: |
+          for file in js/*.js js/admin/*.js; do
+            node --check "$file"
+          done
       - name: Start local preview of checked-out branch
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/bakery-preview.log 2>&1 &
