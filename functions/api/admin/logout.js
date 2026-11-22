@@ -1,6 +1,10 @@
 import { readCookie, sessionCookie, verifySession } from "../../_auth.js";
 
-export async function onRequestPost({ request, env }) {
+export async function onRequest({ request, env }) {
+  if (request.method !== "POST") {
+    return new Response("Method Not Allowed", { status: 405, headers: { Allow: "POST" } });
+  }
+
   const origin = request.headers.get("Origin");
   if (origin !== new URL(request.url).origin) {
     return Response.json({ error: "forbidden" }, { status: 403 });
@@ -17,11 +21,4 @@ export async function onRequestPost({ request, env }) {
       "Cache-Control": "no-store"
     }
   });
-}
-
-export async function onRequest({ request, env }) {
-  if (request.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405, headers: { Allow: "POST" } });
-  }
-  return onRequestPost({ request, env });
 }
