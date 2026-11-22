@@ -306,98 +306,93 @@ function supplierZip(files){
  return new Blob([body,cd,join([u32(0x06054b50),u16(0),u16(0),u16(centrals.length),u16(centrals.length),u32(cd.length),u32(body.length),u16(0)])],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
 }
 function supplierExportReportWorkbook(){
- const XLSX=window.XLSX;
- if(!XLSX||!XLSX.utils||!XLSX.writeFile){alert("تعذر تحميل مكتبة Excel المحلية. حدّث الصفحة وحاول مجدداً.");return;}
- const panel=supplierExportPanel(),rows=[];
- const cell=(v,style="body",span=1)=>({v:String(v??""),style,span});
- const row=(...cells)=>rows.push(cells);
- const title=panel.querySelector("h2")?.innerText?.trim()||"تقرير الموردين والمشتريات";
+ const panel=supplierExportPanel();
+ const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+ const col=n=>{let out="";for(;n;n=Math.floor((n-1)/26))out=String.fromCharCode(65+(n-1)%26)+out;return out;};
+ const rows=[],merges=[];
+ const add=(items=[],height=27)=>{
+  const r=rows.length+1,cells=[];let c=1;
+  items.forEach(item=>{
+   const span=item.span||1;
+   cells.push('<c r="'+col(c)+r+'" s="'+(item.style||0)+'" t="inlineStr"><is><t xml:space="preserve">'+esc(item.text)+'</t></is></c>');
+   if(span>1)merges.push(col(c)+r+':'+col(c+span-1)+r);
+   c+=span;
+  });
+  rows.push('<row r="'+r+'" ht="'+height+'" customHeight="1">'+cells.join("")+'</row>');
+ };
+ const blank=(h=12)=>add([{text:"",span:6,style:0}],h);
+ const c=(text,style=0,span=1)=>({text,style,span});
+ const title=panel.querySelector("h2")?.innerText?.trim()||"تقارير الموردين والمشتريات";
  const from=panel.querySelector("#reportDateFrom")?.value||"—";
  const to=panel.querySelector("#reportDateTo")?.value||"—";
- row(cell(String(state.settings?.shop_name||"مخبوزات الشام"),"brand",4));
- row(cell(title,"title",4));
- row(cell("ملخص مالي وإداري","subtitle",4));
- row(cell("الفترة: "+from+" إلى "+to,"meta",4));
- row([]);
+ const shop=state.settings?.shop_name||"مخبوزات الشام";
+ add([c(shop,1,6)],30);
+ add([c(title,2,6)],42);
+ add([c("ملخص مالي حسب الفترة المحددة",3,6)],30);
+ add([c("الفترة: "+from+" إلى "+to,4,6)],25);
+ blank(18);
+ add([c("مؤشرات التقرير",5,6)],32);
  const counts=[...panel.querySelectorAll(".report-count-card")].map(x=>({label:x.querySelector("span")?.innerText||"",value:x.querySelector("b")?.innerText||"0"}));
  if(counts.length){
-  row(cell("نظرة عامة","section",4));
-  counts.forEach(item=>row(cell(item.label,"kpiLabel",3),cell(item.value,"kpiValue")));
-  row([]);
- }
- [...panel.querySelectorAll(".report-currency-card")].forEach(card=>{
+  const kpis=counts.slice(0,3);
+  add(kpis.map(x=>c(x.label,6,2)),28);
+  add(kpis.map(x=>c(x.value,7,2)),42);
+ }else add([c("لا توجد مؤشرات متاحة",8,6)],30);
+ blank(20);
+ const currencyCards=[...panel.querySelectorAll(".report-currency-card")];
+ currencyCards.forEach(card=>{
   const currency=card.querySelector("h3")?.innerText?.trim()||"";
-  row(cell("الملخص المالي  |  "+currency,"section",4));
-  const metrics=[...card.querySelectorAll(".report-metrics>div")].map(x=>({label:x.querySelector("small")?.innerText||"",value:x.querySelector("b")?.innerText||"—"}));
-  metrics.forEach(m=>row(cell(m.label,"metricLabel",3),cell(m.value,"metricValue")));
-  row([]);
+  add([c("الملخص المالي — "+currency,5,6)],34);
+  const metrics=[...card.querySelectorAll(".report-metrics>div")].map(x=>({label:x.querySelector("small")?.innerText?.trim()||"",value:x.querySelector("b")?.innerText?.trim()||"—"}));
+  for(let i=0;i<metrics.length;i+=2){
+   const left=metrics[i],right=metrics[i+1];
+   add([
+    c(left?.label||"",8,2),c(left?.value||"",9,1),
+    c(right?.label||"",8,2),c(right?.value||"",9,1)
+   ],34);
+  }
+  blank(20);
  });
- [...panel.querySelectorAll(".supplier-report-card")].forEach(card=>{
-  const head=card.querySelector(".supplier-report-card-head");
-  const name=head?.querySelector("b")?.innerText?.trim()||"مورد";
-  const currency=head?.querySelector("span")?.innerText?.trim()||"";
-  row(cell("ملف المورد  |  "+name,"supplierHead",3),cell(currency,"currency"));
-  const metrics=[...card.querySelectorAll(".supplier-report-card-metrics span")].map(x=>{
-   const b=x.querySelector("b"),label=x.cloneNode(true);label.querySelector("b")?.remove();
-   return {label:label.innerText.trim(),value:b?.innerText||"—"};
-  });
-  metrics.forEach(m=>row(cell(m.label,"metricLabel",3),cell(m.value,"metricValue")));
-  row([]);
- });
+ const suppliers=[...panel.querySelectorAll(".supplier-report-card")];
+ if(suppliers.length){
+  add([c("ملخص الموردين",5,6)],34);
+  for(let i=0;i<suppliers.length;i+=2){
+   const pair=[suppliers[i],suppliers[i+1]];
+   const data=pair.map(card=>{
+    if(!card)return null;
+    const head=card.querySelector(".supplier-report-card-head");
+    const metrics=[...card.querySelectorAll(".supplier-report-card-metrics span")].map(x=>{
+     const value=x.querySelector("b"),label=x.cloneNode(true);label.querySelector("b")?.remove();
+     return {label:label.innerText.trim(),value:value?.innerText||"—"};
+    });
+    return {name:head?.querySelector("b")?.innerText?.trim()||"مورد",currency:head?.querySelector("span")?.innerText?.trim()||"",metrics};
+   });
+   add([c(data[0]?.name||"",10,3),c(data[1]?.name||"",10,3)],34);
+   add([c(data[0]?.currency||"",11,3),c(data[1]?.currency||"",11,3)],25);
+   const max=Math.max(data[0]?.metrics.length||0,data[1]?.metrics.length||0);
+   for(let j=0;j<max;j++){
+    const a=data[0]?.metrics[j],b=data[1]?.metrics[j];
+    add([c(a?.label||"",8,2),c(a?.value||"",9,1),c(b?.label||"",8,2),c(b?.value||"",9,1)],32);
+   }
+   blank(18);
+  }
+ }
  const note=panel.querySelector(".report-note")?.innerText?.trim();
- if(note){row(cell("ملاحظات محاسبية","section",4));row(cell(note,"note",4));}
- if(rows.length<6)row(cell("لا توجد بيانات ضمن الفلاتر المحددة.","note",4));
- const styles={
-  brand:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},
-  title:{font:{name:"Arial",sz:20,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"30241E"}},alignment:{horizontal:"right",vertical:"center"}},
-  subtitle:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},
-  meta:{font:{name:"Arial",sz:12,color:{rgb:"817367"}},alignment:{horizontal:"right",vertical:"center"}},
-  section:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},
-  kpiLabel:{font:{name:"Arial",sz:13,bold:true,color:{rgb:"685344"}},fill:{fgColor:{rgb:"F3EADF"}},alignment:{horizontal:"right",vertical:"center"},border:{bottom:{style:"thin",color:{rgb:"E4D5C5"}}}},
-  kpiValue:{font:{name:"Arial",sz:18,bold:true,color:{rgb:"80563D"}},fill:{fgColor:{rgb:"FCF8F3"}},alignment:{horizontal:"center",vertical:"center"},border:{bottom:{style:"thin",color:{rgb:"E4D5C5"}}}},
-  supplierHead:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"60412F"}},alignment:{horizontal:"right",vertical:"center"}},
-  currency:{font:{name:"Arial",sz:12,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"60412F"}},alignment:{horizontal:"center",vertical:"center"}},
-  metricLabel:{font:{name:"Arial",sz:13,bold:true,color:{rgb:"665344"}},fill:{fgColor:{rgb:"F5EEE6"}},alignment:{horizontal:"right",vertical:"center",wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E8DCCE"}}}},
-  metricValue:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"342820"}},fill:{fgColor:{rgb:"FFFCF8"}},alignment:{horizontal:"center",vertical:"center"},border:{bottom:{style:"thin",color:{rgb:"E8DCCE"}}}},
-  note:{font:{name:"Arial",sz:12,color:{rgb:"66584C"}},fill:{fgColor:{rgb:"F8F2EA"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}},
-  body:{font:{name:"Arial",sz:12,color:{rgb:"342820"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}}
+ if(note){add([c("ملاحظات محاسبية",5,6)],32);add([c(note,12,6)],52);}
+ if(rows.length<6)add([c("لا توجد بيانات ضمن الفترة المحددة.",12,6)],34);
+ const sheetRows=rows.join("");
+ const mergeXml=merges.length?'<mergeCells count="'+merges.length+'">'+merges.map(ref=>'<mergeCell ref="'+ref+'"/>').join("")+'</mergeCells>':"";
+ const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="7"><font><sz val="11"/><name val="Arial"/><color rgb="FF514237"/></font><font><b/><sz val="15"/><name val="Arial"/><color rgb="FF80563D"/></font><font><b/><sz val="19"/><name val="Arial"/><color rgb="FFFFFFFF"/></font><font><b/><sz val="15"/><name val="Arial"/><color rgb="FF80563D"/></font><font><sz val="11"/><name val="Arial"/><color rgb="FF897B6D"/></font><font><b/><sz val="14"/><name val="Arial"/><color rgb="FFFFFFFF"/></font><font><b/><sz val="12"/><name val="Arial"/><color rgb="FF74513C"/></font></fonts><fills count="8"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF33251E"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FF80563D"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF8F2EB"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF1E8DE"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFCF8F3"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE8D8C8"/></patternFill></fill></fills><borders count="3"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFE8D8C8"/></left><right style="thin"><color rgb="FFE8D8C8"/></right><top style="thin"><color rgb="FFE8D8C8"/></top><bottom style="thin"><color rgb="FFE8D8C8"/></bottom><diagonal/></border><border><left/><right/><top/><bottom style="hair"><color rgb="FFE8D8C8"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="13"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="1" fillId="0" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="2" fillId="2" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="3" fillId="0" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="4" fillId="0" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="5" fillId="3" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="6" fillId="5" borderId="1" applyAlignment="1"><alignment horizontal="center" vertical="center" readingOrder="2" wrapText="1"/></xf><xf numFmtId="0" fontId="6" fillId="6" borderId="1" applyAlignment="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="0" fillId="5" borderId="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="6" borderId="1" applyAlignment="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="5" fillId="3" borderId="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="4" fillId="3" borderId="1" applyAlignment="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="1" applyAlignment="1"><alignment horizontal="right" vertical="center" readingOrder="2" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+ const files={
+ "[Content_Types].xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
+ "_rels/.rels":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+ "xl/workbook.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="تقرير المتجر" sheetId="1" r:id="rId1"/></sheets></workbook>',
+ "xl/_rels/workbook.xml.rels":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+ "xl/styles.xml":styles,
+ "xl/worksheets/sheet1.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView rightToLeft="1" showGridLines="0" workbookViewId="0"><selection activeCell="A1" sqref="A1"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="24"/><cols><col min="1" max="6" width="16" customWidth="1"/></cols><sheetData>'+sheetRows+'</sheetData>'+mergeXml+'<printOptions horizontalCentered="1" verticalCentered="0"/><pageMargins left="0.25" right="0.25" top="0.35" bottom="0.35" header="0.15" footer="0.15"/><pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/><headerFooter><oddFooter><t>صفحة &amp;P من &amp;N</t></oddFooter></headerFooter></worksheet>'
  };
- const aoa=[],merges=[],rowStyles=[];
- rows.forEach((cells,ri)=>{
-  const line=Array(4).fill(""),stylesForRow=Array(4).fill(null);let ci=0;
-  cells.forEach(c=>{
-   if(!c){ci++;return;}
-   line[ci]=c.v;
-   for(let k=0;k<c.span&&ci+k<4;k++)stylesForRow[ci+k]=c.style;
-   if(c.span>1)merges.push({s:{r:ri,c:ci},e:{r:ri,c:Math.min(3,ci+c.span-1)}});
-   ci+=c.span;
-  });
-  aoa.push(line);rowStyles.push(stylesForRow);
- });
- const ws=XLSX.utils.aoa_to_sheet(aoa);
- rowStyles.forEach((line,ri)=>line.forEach((style,ci)=>{
-  const addr=XLSX.utils.encode_cell({r:ri,c:ci});
-  if(ws[addr])ws[addr].s=styles[style]||styles.body;
- }));
- ws["!ref"]="A1:D"+Math.max(1,aoa.length);
- ws["!merges"]=merges;
- ws["!cols"]=[{wch:24},{wch:18},{wch:24},{wch:16}];
- ws["!rows"]=rows.map((r,i)=>{
-  let h=30;
-  if(i===0)h=30;
-  if(r.some(c=>c?.style==="title"))h=42;
-  if(r.some(c=>c?.style==="section"||c?.style==="supplierHead"))h=34;
-  if(r.some(c=>c?.style==="kpiValue"))h=34;
-  if(r.some(c=>c?.style==="note"))h=48;
-  if(r.length===0)h=12;
-  return {hpt:h};
- });
- ws["!sheetView"]={rightToLeft:true,showGridLines:false};
- ws["!pageSetup"]={paperSize:9,orientation:"portrait",fitToWidth:1,fitToHeight:0,scale:90};
- ws["!margins"]={left:0.25,right:0.25,top:0.45,bottom:0.45,header:0.2,footer:0.2};
- const wb=XLSX.utils.book_new();wb.Workbook=wb.Workbook||{};wb.Workbook.Views=[{RTL:true}];
- XLSX.utils.book_append_sheet(wb,ws,"تقرير المتجر");
- XLSX.writeFile(wb,"تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xlsx",{bookType:"xlsx",compression:true});
+ const blob=supplierZip(files),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xlsx";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
 }
 function supplierExportExcel(){
  if(supplierExportPanel()?.dataset.panel==="reports"){supplierExportReportWorkbook();return;}
