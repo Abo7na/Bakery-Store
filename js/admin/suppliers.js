@@ -308,7 +308,7 @@ function supplierZip(files){
 function supplierExportReportWorkbook(){
  const XLSX=window.XLSX;
  if(!XLSX||!XLSX.utils||!XLSX.writeFile){alert("تعذر تحميل مكتبة Excel المحلية. حدّث الصفحة وحاول مجدداً.");return;}
- const panel=supplierExportPanel(),rows=[],merges=[];
+ const panel=supplierExportPanel(),rows=[];
  const cell=(v,style="body",span=1)=>({v:String(v??""),style,span});
  const row=(...cells)=>rows.push(cells);
  const title=panel.querySelector("h2")?.innerText?.trim()||"تقارير الموردين والمشتريات";
@@ -339,18 +339,27 @@ function supplierExportReportWorkbook(){
  if(rows.length<5)row(cell("لا توجد بيانات ضمن الفلاتر المحددة.","note",6));
  const aoa=[],styles={title:{font:{name:"Arial",sz:18,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"33271F"}},alignment:{horizontal:"right",vertical:"center"}},subtitle:{font:{name:"Arial",sz:11,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right"}},meta:{font:{name:"Arial",sz:9,color:{rgb:"8A8178"}},alignment:{horizontal:"right"}},section:{font:{name:"Arial",sz:12,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},label:{font:{name:"Arial",sz:9,color:{rgb:"806F60"}},fill:{fgColor:{rgb:"F4EDE4"}},alignment:{horizontal:"right",vertical:"center",wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E5D8C9"}}}},value:{font:{name:"Arial",sz:16,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"FBF7F1"}},alignment:{horizontal:"center",vertical:"center"}},amount:{font:{name:"Arial",sz:10,bold:true,color:{rgb:"33271F"}},fill:{fgColor:{rgb:"FCFAF7"}},alignment:{horizontal:"center",vertical:"center"}},currency:{font:{name:"Arial",sz:10,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"center"}},note:{font:{name:"Arial",sz:9,color:{rgb:"8A8178"}},fill:{fgColor:{rgb:"F8F2EA"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}},body:{font:{name:"Arial",sz:10,color:{rgb:"33271F"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}}};
  rows.forEach((cells,ri)=>{
-  const line=[];let ci=0;
+  const line=Array(6).fill(""),styleCells=Array(6).fill(null);let ci=0;
   cells.forEach(c=>{
-   if(!c){line.push("");ci++;return;}
-   line.push(c.v);
-   if(c.span>1){merges.push({s:{r:ri,c:ci},e:{r:ri,c:ci+c.span-1}});for(let k=1;k<c.span;k++)line.push(null);}
+   if(!c){ci++;return;}
+   line[ci]=c.v;
+   for(let k=0;k<c.span&&ci+k<6;k++)styleCells[ci+k]=c.style;
    ci+=c.span;
   });
   aoa.push(line);
+  rows[ri]._cellStyles=styleCells;
  });
  const ws=XLSX.utils.aoa_to_sheet(aoa);
- rows.forEach((cells,ri)=>{let ci=0;cells.forEach(c=>{if(!c){ci++;return;}const addr=XLSX.utils.encode_cell({r:ri,c:ci});if(ws[addr])ws[addr].s=styles[c.style]||styles.body;ci+=c.span;});});
- ws["!merges"]=merges;ws["!cols"]=Array.from({length:6},()=>({wch:19}));ws["!rows"]=rows.map((r,i)=>({hpt:i===0?34:(r.some(c=>c?.style==="section")?27:23)}));ws["!sheetView"]={rightToLeft:true,showGridLines:false};
+ rows.forEach((cells,ri)=>{
+  (cells._cellStyles||[]).forEach((style,ci)=>{
+   const addr=XLSX.utils.encode_cell({r:ri,c:ci});
+   if(ws[addr])ws[addr].s=styles[style]||styles.body;
+  });
+ });
+ ws["!ref"]="A1:F"+Math.max(1,aoa.length);
+ ws["!cols"]=[{wch:22},{wch:18},{wch:18},{wch:18},{wch:18},{wch:22}];
+ ws["!rows"]=rows.map((r,i)=>({hpt:i===0?38:(r.some(c=>c?.style==="section")?29:25)}));
+ ws["!sheetView"]={rightToLeft:true,showGridLines:false};
  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"تقرير الموردين");
  XLSX.writeFile(wb,"تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xlsx",{bookType:"xlsx",compression:true});
 }
