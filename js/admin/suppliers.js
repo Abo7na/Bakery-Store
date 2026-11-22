@@ -247,54 +247,46 @@ function supplierExportCleanClone(){
 function supplierExportRows(clone,title){
  const rows=[[title],["تاريخ التصدير",new Date().toLocaleString("ar-SY")],[]];
  const tables=[...clone.querySelectorAll("table")];
- if(tables.length){
-  tables.forEach(table=>table.querySelectorAll("tr").forEach(tr=>{
-   const cells=[...tr.querySelectorAll("th,td")].map(c=>c.innerText.trim());
-   if(cells.some(Boolean))rows.push(cells);
-  }));
- }else{
+ if(tables.length)tables.forEach(table=>table.querySelectorAll("tr").forEach(tr=>{const cells=[...tr.querySelectorAll("th,td")].map(c=>c.innerText.trim());if(cells.some(Boolean))rows.push(cells);}));
+ else{
   const selectors=[".supplier-record-group",".supplier-report-card",".invoice-register-card",".invoice-row",".debt-row",".supplier-credit-row",".return-row",".statement-entry",".report-currency-card",".report-count-card"];
   const cards=[...clone.querySelectorAll(selectors.join(","))].filter(el=>!el.parentElement?.closest(selectors.join(",")));
-  const targets=cards.length?cards:[clone];
-  targets.forEach(card=>{
-   const lines=(card.innerText||card.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean);
-   if(lines.length)rows.push(lines);
-  });
+  (cards.length?cards:[clone]).forEach(card=>{const lines=(card.innerText||card.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean);if(lines.length)rows.push(lines);});
  }
- if(rows.length<=3){
-  (clone.innerText||clone.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean).forEach(x=>rows.push([x]));
- }
+ if(rows.length<=3)(clone.innerText||clone.textContent||"").split("\n").map(x=>x.trim()).filter(Boolean).forEach(x=>rows.push([x]));
  return rows;
 }
-function supplierExportExcel(){
- if(!window.XLSX){alert("تعذر تحميل أداة Excel. تحقق من اتصال الإنترنت ثم أعد المحاولة.");return;}
- const {clone,title}=supplierExportCleanClone();
- const ws=window.XLSX.utils.aoa_to_sheet(supplierExportRows(clone,title));
- ws["!views"]=[{rightToLeft:true}];
- ws["!cols"]=(ws["!rows"]||[]).length?[]:[{wch:28},{wch:24},{wch:22},{wch:22}];
- const wb=window.XLSX.utils.book_new();
- window.XLSX.utils.book_append_sheet(wb,ws,"تقرير الموردين");
- window.XLSX.writeFile(wb,"تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xlsx",{bookType:"xlsx",compression:true});
+function supplierZip(files){
+ const enc=new TextEncoder(),locals=[],centrals=[];let offset=0;
+ const u16=n=>{const a=new Uint8Array(2);new DataView(a.buffer).setUint16(0,n,true);return a;};
+ const u32=n=>{const a=new Uint8Array(4);new DataView(a.buffer).setUint32(0,n>>>0,true);return a;};
+ const join=arr=>{const out=new Uint8Array(arr.reduce((n,a)=>n+a.length,0));let p=0;arr.forEach(a=>{out.set(a,p);p+=a.length;});return out;};
+ const crc=data=>{let c=-1;for(const b of data){c^=b;for(let k=0;k<8;k++)c=(c>>>1)^((c&1)?0xedb88320:0);}return(c^-1)>>>0;};
+ for(const [name,content] of Object.entries(files)){
+  const nb=enc.encode(name),data=enc.encode(content),check=crc(data);
+  const local=join([u32(0x04034b50),u16(20),u16(0x0800),u16(0),u16(0),u16(0),u32(check),u32(data.length),u32(data.length),u16(nb.length),u16(0),nb,data]);
+  locals.push(local);
+  centrals.push(join([u32(0x02014b50),u16(20),u16(20),u16(0x0800),u16(0),u16(0),u32(check),u32(data.length),u32(data.length),u16(nb.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),nb]));
+  offset+=local.length;
+ }
+ const body=join(locals),cd=join(centrals);
+ return new Blob([body,cd,join([u32(0x06054b50),u16(0),u16(0),u16(centrals.length),u16(centrals.length),u32(cd.length),u32(body.length),u16(0)])],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
 }
-async function supplierExportPDF(){
- if(!window.html2pdf){alert("تعذر تحميل أداة PDF. تحقق من اتصال الإنترنت ثم أعد المحاولة.");return;}
- const {clone,title}=supplierExportCleanClone();
- const holder=document.createElement("div");
- holder.dir="rtl";holder.lang="ar";holder.style.cssText="position:fixed;left:-10000px;top:0;width:780px;background:#fff;color:#222;padding:24px;z-index:-1;font-family:Arial,sans-serif;direction:rtl";
- const heading=document.createElement("h2");heading.textContent=title;heading.style.cssText="font-size:20px;margin:0 0 8px;text-align:right";
- const stamp=document.createElement("p");stamp.textContent="تاريخ التصدير: "+new Date().toLocaleString("ar-SY");stamp.style.cssText="font-size:11px;color:#666;margin:0 0 18px";
- holder.append(heading,stamp,clone);document.body.appendChild(holder);
- try{
-  await window.html2pdf().set({
-   margin:[8,8,10,8],
-   filename:"تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".pdf",
-   image:{type:"jpeg",quality:.96},
-   html2canvas:{scale:1.5,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:820},
-   jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
-   pagebreak:{mode:["css","legacy"]}
-  }).from(holder).save();
- }catch(error){console.error("Supplier PDF export failed",error);alert("لم نتمكن من إنشاء PDF. جرّب مرة أخرى أو استخدم خيار الطباعة.");}
- finally{holder.remove();}
+function supplierExportExcel(){
+ const {clone,title}=supplierExportCleanClone(),rows=supplierExportRows(clone,title);
+ const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+ const col=n=>{let s="";for(;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
+ const maxCols=Math.max(1,...rows.map(r=>r.length)),maxRows=Math.max(1,rows.length);
+ const sheetRows=rows.map((row,i)=>'<row r="'+(i+1)+'">'+row.map((v,j)=>'<c r="'+col(j+1)+(i+1)+'" t="inlineStr"><is><t xml:space="preserve">'+esc(v)+'</t></is></c>').join("")+'</row>').join("");
+ const files={
+ "[Content_Types].xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+ "_rels/.rels":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+ "xl/workbook.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="تقرير الموردين" sheetId="1" r:id="rId1"/></sheets></workbook>',
+ "xl/_rels/workbook.xml.rels":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+ "xl/worksheets/sheet1.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews><cols><col min="1" max="'+maxCols+'" width="26" customWidth="1"/></cols><sheetData>'+sheetRows+'</sheetData><autoFilter ref="A1:'+col(maxCols)+maxRows+'"/></worksheet>'
+ };
+ const blob=supplierZip(files),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xlsx";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
 }
 function supplierPrintCurrent(){
  const panel=supplierExportPanel();
@@ -302,24 +294,22 @@ function supplierPrintCurrent(){
  document.querySelectorAll(".supplier-panel").forEach(p=>p.dataset.exportWasHidden=p.classList.contains("is-hidden")?"1":"0");
  document.querySelectorAll(".supplier-panel").forEach(p=>p.classList.toggle("is-hidden",p!==panel));
  const cleanup=()=>{document.body.classList.remove("printing-supplier-export");document.querySelectorAll(".supplier-panel").forEach(p=>{if(p.dataset.exportWasHidden!==undefined){p.classList.toggle("is-hidden",p.dataset.exportWasHidden==="1");delete p.dataset.exportWasHidden;}});};
- window.addEventListener("afterprint",cleanup,{once:true});
- window.print();
+ window.addEventListener("afterprint",cleanup,{once:true});window.print();
 }
 function openSupplierExportDialog(){
  let modal=document.getElementById("supplierExportDialog");
  if(!modal){
   modal=document.createElement("div");modal.id="supplierExportDialog";modal.className="supplier-export-backdrop";
-  modal.innerHTML='<section class="supplier-export-dialog" role="dialog" aria-modal="true" aria-labelledby="supplierExportTitle"><div class="supplier-export-head"><h3 id="supplierExportTitle">تصدير بيانات القسم</h3><button type="button" class="supplier-export-close" aria-label="إغلاق">×</button></div><p>اختر طريقة أو أكثر. سيتم استخدام البيانات والفلاتر الظاهرة في التبويب الحالي.</p><label><input type="checkbox" value="excel" checked><span>Excel (XLSX)</span></label><label><input type="checkbox" value="pdf" checked><span>PDF</span></label><label><input type="checkbox" value="print" checked><span>طباعة</span></label><div class="supplier-export-actions"><button type="button" class="outline supplier-export-close">إلغاء</button><button type="button" class="supplier-export-run" id="runSupplierExport">متابعة</button></div></section>';
+  modal.innerHTML='<section class="supplier-export-dialog" role="dialog" aria-modal="true" aria-labelledby="supplierExportTitle"><div class="supplier-export-head"><h3 id="supplierExportTitle">تصدير بيانات القسم</h3><button type="button" class="supplier-export-close" aria-label="إغلاق">×</button></div><p>اختر طريقة أو أكثر. يتم تصدير بيانات التبويب الحالي.</p><label><input type="checkbox" value="excel" checked><span>Excel (XLSX)</span></label><label><input type="checkbox" value="pdf" checked><span>PDF (حفظ من نافذة الطباعة)</span></label><label><input type="checkbox" value="print" checked><span>طباعة</span></label><div class="supplier-export-actions"><button type="button" class="outline supplier-export-close">إلغاء</button><button type="button" class="supplier-export-run" id="runSupplierExport">متابعة</button></div></section>';
   document.body.appendChild(modal);
   modal.querySelectorAll(".supplier-export-close").forEach(b=>b.addEventListener("click",()=>modal.classList.remove("is-open")));
   modal.addEventListener("click",e=>{if(e.target===modal)modal.classList.remove("is-open")});
-  modal.querySelector("#runSupplierExport").addEventListener("click",async()=>{
+  modal.querySelector("#runSupplierExport").addEventListener("click",()=>{
    const chosen=[...modal.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);
    if(!chosen.length){alert("اختر طريقة إخراج واحدة على الأقل.");return;}
    modal.classList.remove("is-open");
    if(chosen.includes("excel"))supplierExportExcel();
-   if(chosen.includes("pdf"))await supplierExportPDF();
-   if(chosen.includes("print"))supplierPrintCurrent();
+   if(chosen.includes("pdf")||chosen.includes("print"))supplierPrintCurrent();
   });
  }
  modal.classList.add("is-open");
