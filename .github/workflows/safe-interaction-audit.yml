@@ -138,6 +138,81 @@ jobs:
               await page.close();
             }
 
+            // Financial regressions use isolated, synthetic browser storage only.
+            // Direct-sale full return must restore stock once and record a pending refund.
+            {
+              const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+              const seed = {
+                products: [{ id: 'audit-product', name: 'منتج اختبار', price: 100, stock: 4 }],
+                directSales: [{
+                  id: 'audit-sale', number: 'INV-AUDIT', createdAt: new Date().toISOString(),
+                  customer: 'اختبار', payment: 'cash', exchangeRate: 1000, total: 100,
+                  items: [{ productId: 'audit-product', name: 'منتج اختبار', price: 100, qty: 1 }]
+                }],
+                orders: [], cart: {}, stockMovements: [], rawMaterials: [],
+                rawMaterialMovements: [], settings: { shop_name: 'اختبار', usd_rate: 1000 }
+              };
+              await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
+              page.on('dialog', dialog => dialog.type === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
+              const response = await page.goto(new URL('/admin/sales.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+              if (!response || response.status() >= 400) throw new Error('Sales test page failed to load');
+              await page.locator('[data-return-sale="audit-sale"]').waitFor({ state: 'visible', timeout: 15000 });
+              await page.locator('[data-return-sale="audit-sale"]').click();
+              const result = await page.evaluate(() => {
+                const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
+                return {
+                  stock: s.products?.find(p => p.id === 'audit-product')?.stock,
+                  voided: !!s.directSales?.find(i => i.id === 'audit-sale')?.voidedAt,
+                  returnAmount: s.directSaleReturns?.find(r => r.invoiceId === 'audit-sale')?.amount,
+                  refundStatus: s.directSaleReturns?.find(r => r.invoiceId === 'audit-sale')?.refundStatus,
+                  movement: s.stockMovements?.some(m => m.type === 'sale_return' && m.reference === 'INV-AUDIT')
+                };
+              });
+              if (result.stock !== 5 || !result.voided || result.returnAmount !== 100 || result.refundStatus !== 'pending' || !result.movement) {
+                throw new Error('Direct-sale return regression failed: ' + JSON.stringify(result));
+              }
+              results.push({ test: 'Direct-sale return restores stock and records pending refund', status: 'passed' });
+              await page.close();
+            }
+
+            // Accepted electronic order cancellation must reverse the earlier stock deduction.
+            {
+              const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+              const seed = {
+                products: [{ id: 'audit-order-product', name: 'منتج طلب اختبار', price: 100, stock: 2 }],
+                orders: [{
+                  id: 'ORD-AUDIT', status: 'قيد التنفيذ', stockDeducted: true,
+                  createdAt: new Date().toISOString(), customer: 'اختبار', phone: '000',
+                  total: 100, subtotal: 100, delivery: 0, items: [
+                    { productId: 'audit-order-product', name: 'منتج طلب اختبار', price: 100, qty: 1 }
+                  ]
+                }],
+                directSales: [], cart: {}, stockMovements: [], rawMaterials: [],
+                rawMaterialMovements: [], settings: { shop_name: 'اختبار', delivery_fee: 0 }
+              };
+              await page.addInitScript(data => localStorage.setItem('bakery_store_syp_v1', JSON.stringify(data)), seed);
+              page.on('dialog', dialog => dialog.type === 'prompt' ? dialog.accept('اختبار آلي') : dialog.accept());
+              const response = await page.goto(new URL('/admin/orders.html', process.env.SITE_URL).toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+              if (!response || response.status() >= 400) throw new Error('Orders test page failed to load');
+              await page.locator('[data-cancel-order="ORD-AUDIT"]').waitFor({ state: 'visible', timeout: 15000 });
+              await page.locator('[data-cancel-order="ORD-AUDIT"]').click();
+              const result = await page.evaluate(() => {
+                const s = JSON.parse(localStorage.getItem('bakery_store_syp_v1') || '{}');
+                const order = s.orders?.find(o => o.id === 'ORD-AUDIT');
+                return {
+                  stock: s.products?.find(p => p.id === 'audit-order-product')?.stock,
+                  status: order?.status,
+                  restored: order?.stockRestored,
+                  movement: s.stockMovements?.some(m => m.type === 'order_cancel' && m.reference === 'ORD-AUDIT')
+                };
+              });
+              if (result.stock !== 3 || result.status !== 'ملغى' || !result.restored || !result.movement) {
+                throw new Error('Order cancellation regression failed: ' + JSON.stringify(result));
+              }
+              results.push({ test: 'Accepted order cancellation restores stock once', status: 'passed' });
+              await page.close();
+            }
+
             // Material report: report tabs and search/date filters only.
             {
               const page = await openPage('/admin/material-movements.html?materialId=__audit_nonexistent__');
