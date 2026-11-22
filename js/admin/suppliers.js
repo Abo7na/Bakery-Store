@@ -438,11 +438,32 @@ function supplierExportExcel(){
 }
 function supplierPrintCurrent(){
  const panel=supplierExportPanel();
+ if(!panel)return;
+ const heading=document.createElement("div");
+ heading.className="supplier-print-heading";
+ const shop=document.createElement("div");
+ shop.className="supplier-print-shop-name";
+ shop.textContent=String(state.settings?.shop_name||"مخبوزات أمية").trim();
+ const date=document.createElement("div");
+ date.className="supplier-print-created-date";
+ date.textContent="تاريخ إنشاء التقرير: "+new Intl.DateTimeFormat("ar-SY",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date());
+ heading.append(shop,date);
+ panel.insertBefore(heading,panel.firstChild);
  document.body.classList.add("printing-supplier-export");
  document.querySelectorAll(".supplier-panel").forEach(p=>p.dataset.exportWasHidden=p.classList.contains("is-hidden")?"1":"0");
  document.querySelectorAll(".supplier-panel").forEach(p=>p.classList.toggle("is-hidden",p!==panel));
- const cleanup=()=>{document.body.classList.remove("printing-supplier-export");document.querySelectorAll(".supplier-panel").forEach(p=>{if(p.dataset.exportWasHidden!==undefined){p.classList.toggle("is-hidden",p.dataset.exportWasHidden==="1");delete p.dataset.exportWasHidden;}});};
- window.addEventListener("afterprint",cleanup,{once:true});window.print();
+ const cleanup=()=>{
+  document.body.classList.remove("printing-supplier-export");
+  heading.remove();
+  document.querySelectorAll(".supplier-panel").forEach(p=>{
+   if(p.dataset.exportWasHidden!==undefined){
+    p.classList.toggle("is-hidden",p.dataset.exportWasHidden==="1");
+    delete p.dataset.exportWasHidden;
+   }
+  });
+ };
+ window.addEventListener("afterprint",cleanup,{once:true});
+ window.print();
 }
 function openSupplierExportDialog(){
  let modal=document.getElementById("supplierExportDialog");
