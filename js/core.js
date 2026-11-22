@@ -10,7 +10,7 @@ const defaults={
  cart:{},orders:[],directSales:[],settings:{shop_name:"مخبوزات الشام",delivery_fee:5000,sham_cash:""}
 };
 let state=loadState(),category="الكل",activeTab="overview";
-function loadState(){try{return {...structuredClone(defaults),...JSON.parse(localStorage.getItem(STORE_KEY)||"{}")}}catch{return structuredClone(defaults)}}
+function loadState(){try{const saved=JSON.parse(localStorage.getItem(STORE_KEY)||"{}");if(!saved||typeof saved!=="object"||Array.isArray(saved))return structuredClone(defaults);return {...structuredClone(defaults),...saved,products:Array.isArray(saved.products)?saved.products:structuredClone(defaults.products),orders:Array.isArray(saved.orders)?saved.orders:[],directSales:Array.isArray(saved.directSales)?saved.directSales:[],cart:saved.cart&&typeof saved.cart==="object"&&!Array.isArray(saved.cart)?saved.cart:{},settings:{...defaults.settings,...(saved.settings&&typeof saved.settings==="object"&&!Array.isArray(saved.settings)?saved.settings:{})},rawMaterials:Array.isArray(saved.rawMaterials)?saved.rawMaterials:[],rawMaterialMovements:Array.isArray(saved.rawMaterialMovements)?saved.rawMaterialMovements:[],stockMovements:Array.isArray(saved.stockMovements)?saved.stockMovements:[]}}catch(error){console.error("تعذر قراءة بيانات المتجر المحفوظة:",error);return structuredClone(defaults)}}
 function save(){localStorage.setItem(STORE_KEY,JSON.stringify(state))}
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=n=>new Intl.NumberFormat("ar-SY",{maximumFractionDigits:0}).format(Math.round(Number(n)||0))+" ل.س";
