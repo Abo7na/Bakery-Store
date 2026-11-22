@@ -315,7 +315,7 @@ jobs:
               await page.close();
             }
 
-            const report = { auditedAt: new Date().toISOString(), site: process.env.SITE_URL, safety: 'No forms submitted; no sale, purchase, return, stock, payment, or delete actions performed.', results, pageErrors: errors };
+            const report = { auditedAt: new Date().toISOString(), site: process.env.SITE_URL, safety: 'Finance regression tests used synthetic data in isolated browser storage only; no live store data, external payments, or deployed site data were changed.', results, pageErrors: errors };
             fs.writeFileSync('interaction-results/report.json', JSON.stringify(report, null, 2));
             await browser.close();
             console.log(JSON.stringify(report, null, 2));
