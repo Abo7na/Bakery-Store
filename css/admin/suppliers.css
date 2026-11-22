@@ -480,3 +480,17 @@
     line-height:1.7;
   }
 }
+
+
+/* Cash recovery action for supplier credits */
+.supplier-recovery-btn{margin-top:8px;white-space:nowrap}
+@media(max-width:760px){
+  #creditsList>.supplier-credit-row>div:last-child{
+    align-items:flex-start!important;
+  }
+  #creditsList .supplier-recovery-btn{
+    align-self:flex-start;
+    width:auto;
+    max-width:100%;
+  }
+}
