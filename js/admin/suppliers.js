@@ -311,58 +311,92 @@ function supplierExportReportWorkbook(){
  const panel=supplierExportPanel(),rows=[];
  const cell=(v,style="body",span=1)=>({v:String(v??""),style,span});
  const row=(...cells)=>rows.push(cells);
- const title=panel.querySelector("h2")?.innerText?.trim()||"تقارير الموردين والمشتريات";
- row(cell(String(state.settings?.shop_name||"مخبوزات الشام"),"brand",6));row(cell(title,"title",6));row(cell("ملخص مالي حسب الفترة المحددة","subtitle",6));
- row(cell("الفترة: "+(panel.querySelector("#reportDateFrom")?.value||"—")+" إلى "+(panel.querySelector("#reportDateTo")?.value||"—"),"meta",6));row([]);
- const counts=[...panel.querySelectorAll(".report-count-card")];
+ const title=panel.querySelector("h2")?.innerText?.trim()||"تقرير الموردين والمشتريات";
+ const from=panel.querySelector("#reportDateFrom")?.value||"—";
+ const to=panel.querySelector("#reportDateTo")?.value||"—";
+ row(cell(String(state.settings?.shop_name||"مخبوزات الشام"),"brand",4));
+ row(cell(title,"title",4));
+ row(cell("ملخص مالي وإداري","subtitle",4));
+ row(cell("الفترة: "+from+" إلى "+to,"meta",4));
+ row([]);
+ const counts=[...panel.querySelectorAll(".report-count-card")].map(x=>({label:x.querySelector("span")?.innerText||"",value:x.querySelector("b")?.innerText||"0"}));
  if(counts.length){
-  row(cell("مؤشرات التقرير","section",6));
-  const c=counts.map(x=>[x.querySelector("span")?.innerText||"",x.querySelector("b")?.innerText||""]);
-  row(cell(c[0]?.[0]||"فواتير الشراء","label",2),cell(c[1]?.[0]||"المرتجعات","label",2),cell(c[2]?.[0]||"الموردون","label",2));
-  row(cell(c[0]?.[1]||"0","value",2),cell(c[1]?.[1]||"0","value",2),cell(c[2]?.[1]||"0","value",2));row([]);
+  row(cell("نظرة عامة","section",4));
+  counts.forEach(item=>row(cell(item.label,"kpiLabel",3),cell(item.value,"kpiValue")));
+  row([]);
  }
  [...panel.querySelectorAll(".report-currency-card")].forEach(card=>{
-  row(cell("الملخص المالي — "+(card.querySelector("h3")?.innerText||""),"section",6));
-  const m=[...card.querySelectorAll(".report-metrics>div")].map(x=>[x.querySelector("small")?.innerText||"",x.querySelector("b")?.innerText||""]);
-  for(let i=0;i<m.length;i+=2)row(cell(m[i]?.[0]||"","label",2),cell(m[i]?.[1]||"","amount"),cell(m[i+1]?.[0]||"","label",2),cell(m[i+1]?.[1]||"","amount"));
+  const currency=card.querySelector("h3")?.innerText?.trim()||"";
+  row(cell("الملخص المالي  |  "+currency,"section",4));
+  const metrics=[...card.querySelectorAll(".report-metrics>div")].map(x=>({label:x.querySelector("small")?.innerText||"",value:x.querySelector("b")?.innerText||"—"}));
+  metrics.forEach(m=>row(cell(m.label,"metricLabel",3),cell(m.value,"metricValue")));
   row([]);
  });
  [...panel.querySelectorAll(".supplier-report-card")].forEach(card=>{
-  const h=card.querySelector(".supplier-report-card-head");
-  row(cell("المورد: "+(h?.querySelector("b")?.innerText||""),"section",5),cell(h?.querySelector("span")?.innerText||"","currency"));
-  const m=[...card.querySelectorAll(".supplier-report-card-metrics span")].map(x=>{const b=x.querySelector("b"),label=x.cloneNode(true);label.querySelector("b")?.remove();return[label.innerText.trim(),b?.innerText||""];});
-  for(let i=0;i<m.length;i+=2)row(cell(m[i]?.[0]||"","label",2),cell(m[i]?.[1]||"","amount"),cell(m[i+1]?.[0]||"","label",2),cell(m[i+1]?.[1]||"","amount"));
+  const head=card.querySelector(".supplier-report-card-head");
+  const name=head?.querySelector("b")?.innerText?.trim()||"مورد";
+  const currency=head?.querySelector("span")?.innerText?.trim()||"";
+  row(cell("ملف المورد  |  "+name,"supplierHead",3),cell(currency,"currency"));
+  const metrics=[...card.querySelectorAll(".supplier-report-card-metrics span")].map(x=>{
+   const b=x.querySelector("b"),label=x.cloneNode(true);label.querySelector("b")?.remove();
+   return {label:label.innerText.trim(),value:b?.innerText||"—"};
+  });
+  metrics.forEach(m=>row(cell(m.label,"metricLabel",3),cell(m.value,"metricValue")));
   row([]);
  });
  const note=panel.querySelector(".report-note")?.innerText?.trim();
- if(note){row(cell("ملاحظات محاسبية","section",6));row(cell(note,"note",6));}
- if(rows.length<5)row(cell("لا توجد بيانات ضمن الفلاتر المحددة.","note",6));
- const aoa=[],merges=[],styles={brand:{font:{name:"Arial",sz:16,bold:true,color:{rgb:"70452F"}},alignment:{horizontal:"right",vertical:"center"}},title:{font:{name:"Arial",sz:20,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"33271F"}},alignment:{horizontal:"right",vertical:"center"}},subtitle:{font:{name:"Arial",sz:16,bold:true,color:{rgb:"70452F"}},alignment:{horizontal:"right",vertical:"center"}},meta:{font:{name:"Arial",sz:13,color:{rgb:"75685D"}},alignment:{horizontal:"right",vertical:"center"}},section:{font:{name:"Arial",sz:18,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},label:{font:{name:"Arial",sz:14,bold:true,color:{rgb:"5E493B"}},fill:{fgColor:{rgb:"F4EDE4"}},alignment:{horizontal:"right",vertical:"center",wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E5D8C9"}}}},value:{font:{name:"Arial",sz:20,bold:true,color:{rgb:"70452F"}},fill:{fgColor:{rgb:"FBF7F1"}},alignment:{horizontal:"center",vertical:"center"}},amount:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"33271F"}},fill:{fgColor:{rgb:"FCFAF7"}},alignment:{horizontal:"center",vertical:"center"}},currency:{font:{name:"Arial",sz:14,bold:true,color:{rgb:"70452F"}},alignment:{horizontal:"center",vertical:"center"}},note:{font:{name:"Arial",sz:13,color:{rgb:"66584C"}},fill:{fgColor:{rgb:"F8F2EA"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}},body:{font:{name:"Arial",sz:14,color:{rgb:"33271F"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}}};
+ if(note){row(cell("ملاحظات محاسبية","section",4));row(cell(note,"note",4));}
+ if(rows.length<6)row(cell("لا توجد بيانات ضمن الفلاتر المحددة.","note",4));
+ const styles={
+  brand:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},
+  title:{font:{name:"Arial",sz:20,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"30241E"}},alignment:{horizontal:"right",vertical:"center"}},
+  subtitle:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},
+  meta:{font:{name:"Arial",sz:12,color:{rgb:"817367"}},alignment:{horizontal:"right",vertical:"center"}},
+  section:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"80563D"}},alignment:{horizontal:"right",vertical:"center"}},
+  kpiLabel:{font:{name:"Arial",sz:13,bold:true,color:{rgb:"685344"}},fill:{fgColor:{rgb:"F3EADF"}},alignment:{horizontal:"right",vertical:"center"},border:{bottom:{style:"thin",color:{rgb:"E4D5C5"}}}},
+  kpiValue:{font:{name:"Arial",sz:18,bold:true,color:{rgb:"80563D"}},fill:{fgColor:{rgb:"FCF8F3"}},alignment:{horizontal:"center",vertical:"center"},border:{bottom:{style:"thin",color:{rgb:"E4D5C5"}}}},
+  supplierHead:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"60412F"}},alignment:{horizontal:"right",vertical:"center"}},
+  currency:{font:{name:"Arial",sz:12,bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"60412F"}},alignment:{horizontal:"center",vertical:"center"}},
+  metricLabel:{font:{name:"Arial",sz:13,bold:true,color:{rgb:"665344"}},fill:{fgColor:{rgb:"F5EEE6"}},alignment:{horizontal:"right",vertical:"center",wrapText:true},border:{bottom:{style:"thin",color:{rgb:"E8DCCE"}}}},
+  metricValue:{font:{name:"Arial",sz:15,bold:true,color:{rgb:"342820"}},fill:{fgColor:{rgb:"FFFCF8"}},alignment:{horizontal:"center",vertical:"center"},border:{bottom:{style:"thin",color:{rgb:"E8DCCE"}}}},
+  note:{font:{name:"Arial",sz:12,color:{rgb:"66584C"}},fill:{fgColor:{rgb:"F8F2EA"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}},
+  body:{font:{name:"Arial",sz:12,color:{rgb:"342820"}},alignment:{horizontal:"right",vertical:"center",wrapText:true}}
+ };
+ const aoa=[],merges=[],rowStyles=[];
  rows.forEach((cells,ri)=>{
-  const line=Array(6).fill(""),styleCells=Array(6).fill(null);let ci=0;
+  const line=Array(4).fill(""),stylesForRow=Array(4).fill(null);let ci=0;
   cells.forEach(c=>{
    if(!c){ci++;return;}
    line[ci]=c.v;
-   for(let k=0;k<c.span&&ci+k<6;k++)styleCells[ci+k]=c.style;
-   if(c.span>1)merges.push({s:{r:ri,c:ci},e:{r:ri,c:Math.min(5,ci+c.span-1)}});
+   for(let k=0;k<c.span&&ci+k<4;k++)stylesForRow[ci+k]=c.style;
+   if(c.span>1)merges.push({s:{r:ri,c:ci},e:{r:ri,c:Math.min(3,ci+c.span-1)}});
    ci+=c.span;
   });
-  aoa.push(line);
-  rows[ri]._cellStyles=styleCells;
+  aoa.push(line);rowStyles.push(stylesForRow);
  });
  const ws=XLSX.utils.aoa_to_sheet(aoa);
- rows.forEach((cells,ri)=>{
-  (cells._cellStyles||[]).forEach((style,ci)=>{
-   const addr=XLSX.utils.encode_cell({r:ri,c:ci});
-   if(ws[addr])ws[addr].s=styles[style]||styles.body;
-  });
- });
- ws["!ref"]="A1:F"+Math.max(1,aoa.length);
+ rowStyles.forEach((line,ri)=>line.forEach((style,ci)=>{
+  const addr=XLSX.utils.encode_cell({r:ri,c:ci});
+  if(ws[addr])ws[addr].s=styles[style]||styles.body;
+ }));
+ ws["!ref"]="A1:D"+Math.max(1,aoa.length);
  ws["!merges"]=merges;
- ws["!cols"]=[{wch:22},{wch:18},{wch:18},{wch:18},{wch:18},{wch:22}];
- ws["!rows"]=rows.map((r,i)=>({hpt:i===0?34:(r.some(c=>c?.style==="title")?44:(r.some(c=>c?.style==="section")?42:(r.some(c=>c?.style==="value")?40:36)))}));
+ ws["!cols"]=[{wch:24},{wch:18},{wch:24},{wch:16}];
+ ws["!rows"]=rows.map((r,i)=>{
+  let h=30;
+  if(i===0)h=30;
+  if(r.some(c=>c?.style==="title"))h=42;
+  if(r.some(c=>c?.style==="section"||c?.style==="supplierHead"))h=34;
+  if(r.some(c=>c?.style==="kpiValue"))h=34;
+  if(r.some(c=>c?.style==="note"))h=48;
+  if(r.length===0)h=12;
+  return {hpt:h};
+ });
  ws["!sheetView"]={rightToLeft:true,showGridLines:false};
- const wb=XLSX.utils.book_new();wb.Workbook=wb.Workbook||{};wb.Workbook.Views=[{RTL:true}];XLSX.utils.book_append_sheet(wb,ws,"تقرير الموردين");
+ ws["!pageSetup"]={paperSize:9,orientation:"portrait",fitToWidth:1,fitToHeight:0,scale:90};
+ ws["!margins"]={left:0.25,right:0.25,top:0.45,bottom:0.45,header:0.2,footer:0.2};
+ const wb=XLSX.utils.book_new();wb.Workbook=wb.Workbook||{};wb.Workbook.Views=[{RTL:true}];
+ XLSX.utils.book_append_sheet(wb,ws,"تقرير المتجر");
  XLSX.writeFile(wb,"تقرير-الموردين-"+new Date().toISOString().slice(0,10)+".xlsx",{bookType:"xlsx",compression:true});
 }
 function supplierExportExcel(){
