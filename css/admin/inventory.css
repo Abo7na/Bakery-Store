@@ -165,3 +165,51 @@
  .inventory-supply-metrics>div span{font-size:10px}
  .inventory-supply-metrics>div b{font-size:13px}
 }
+
+/* Per-material movement profile: grouped ledger and drill-down reports */
+.inventory-material-groups{display:grid;gap:13px}
+.inventory-material-group-card{display:grid;gap:13px;width:100%;padding:15px;text-align:right;border:1px solid #eadfd2;border-radius:16px;background:#fffaf5;color:#29231e;cursor:pointer;box-shadow:0 2px 8px #392b1b08;transition:border-color .18s,transform .18s}
+.inventory-material-group-card:active{transform:scale(.995)}
+.inventory-material-group-card:hover{border-color:#d8b994}
+.inventory-material-group-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:11px;border-bottom:1px solid #eee3d7}
+.inventory-material-group-head>div{display:grid;gap:5px;min-width:0}
+.inventory-material-group-head b{font-size:16px;overflow-wrap:anywhere}
+.inventory-material-group-head small{font-size:11px;color:#897d70}
+.inventory-material-open{flex:0 0 auto;color:#80563d;font-size:11px;font-weight:700}
+.inventory-material-group-metrics,.inventory-material-profile-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.inventory-material-group-metrics>div,.inventory-material-profile-summary>div{display:grid;gap:6px;min-width:0;padding:10px;border:1px solid #eee3d7;border-radius:11px;background:#fffdf9}
+.inventory-material-group-metrics span,.inventory-material-profile-summary span{font-size:11px;color:#897d70}
+.inventory-material-group-metrics b,.inventory-material-profile-summary b{font-size:14px;color:#40362d;overflow-wrap:anywhere}
+.inventory-material-group-metrics b.plus,.inventory-material-profile-summary b.plus{color:#287344}
+.inventory-material-group-metrics b.minus,.inventory-material-profile-summary b.minus{color:#b34a3d}
+.inventory-material-profile{display:grid;gap:14px}
+.inventory-material-profile-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.inventory-material-profile-head>div h2{margin:0;font-size:20px}
+.inventory-material-profile-head>div p{margin:5px 0 0;color:#897d70;font-size:12px}
+.inventory-material-profile-summary>div{min-height:65px;justify-content:space-between}
+.inventory-material-report-tabs{display:flex;gap:7px;overflow-x:auto;white-space:nowrap;padding:5px 0 9px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.inventory-material-report-tabs::-webkit-scrollbar{display:none}
+.inventory-material-report-tabs button{flex:0 0 auto;padding:9px 13px;border:1px solid #e8ded2;border-radius:10px;background:#fffaf5;color:#66584b;font:inherit;font-size:12px}
+.inventory-material-report-tabs button.active{background:#35271f;color:#fff;border-color:#35271f;font-weight:700}
+.inventory-material-report-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:12px;border:1px solid #eee3d7;border-radius:13px;background:#fcf8f2}
+.inventory-material-report-filters label{display:grid;gap:6px;color:#76685a;font-size:11px;font-weight:700}
+.inventory-material-report-filters input{box-sizing:border-box;width:100%;min-width:0;min-height:42px;padding:8px;border:1px solid #e4d9cd;border-radius:9px;background:#fff;font:inherit}
+.inventory-material-report-filters button{grid-column:1/-1}
+.inventory-material-report-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.inventory-material-report-heading h3{margin:0;font-size:16px}
+.inventory-material-report-heading span{color:#897d70;font-size:12px}
+.inventory-material-report-list{display:grid;gap:11px}
+.inventory-material-report-card{display:grid;gap:10px;padding:13px;border:1px solid #eadfd2;border-radius:14px;background:#fffaf5}
+.inventory-material-report-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-bottom:9px;border-bottom:1px solid #eee3d7}
+.inventory-material-report-head>div{display:grid;gap:4px;min-width:0}
+.inventory-material-report-head b{font-size:13px;overflow-wrap:anywhere}
+.inventory-material-report-head small{font-size:11px;color:#897d70}
+.inventory-material-report-head strong{white-space:nowrap;font-size:14px}
+.inventory-material-report-head strong.plus{color:#287344}
+.inventory-material-report-head strong.minus{color:#b34a3d}
+.inventory-material-report-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.inventory-material-report-metrics>div{display:grid;gap:5px;padding:9px;border:1px solid #eee3d7;border-radius:10px;background:#fffdf9}
+.inventory-material-report-metrics span{font-size:10px;color:#897d70}
+.inventory-material-report-metrics b{font-size:12px;overflow-wrap:anywhere}
+@media(max-width:520px){.inventory-material-group-card{padding:12px}.inventory-material-group-head b{font-size:14px}.inventory-material-profile-head{align-items:flex-start}.inventory-material-profile-head>div h2{font-size:18px}.inventory-material-profile-summary{gap:7px}.inventory-material-profile-summary>div{padding:9px}.inventory-material-report-filters{padding:10px;gap:8px}}
+@media(max-width:370px){.inventory-material-group-metrics,.inventory-material-profile-summary,.inventory-material-report-metrics{grid-template-columns:1fr}.inventory-material-report-filters{grid-template-columns:1fr}}
