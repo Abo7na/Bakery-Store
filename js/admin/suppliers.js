@@ -57,9 +57,15 @@ function reportDateValue(v){return String(v||"").slice(0,10)}
 function reportInRange(v,from,to){const d=reportDateValue(v);return !!d&&(!from||d>=from)&&(!to||d<=to)}
 function renderSupplierReport(){
  const from=$id("reportDateFrom").value,to=$id("reportDateTo").value,supplierFilter=$id("reportSupplierFilter").value,currencyFilter=$id("reportCurrencyFilter").value;
+ const search=String($id("reportSupplierSearch").value||"").trim().toLocaleLowerCase("ar");
+ const matchesSupplier=id=>{
+  if(!search)return true;
+  const supplier=state.suppliers.find(v=>v.id===id);
+  return String(supplier?.name||"مورد").trim().toLocaleLowerCase("ar").includes(search);
+ };
  if(from&&to&&from>to){$id("supplierReportTotals").innerHTML='<div class="empty-suppliers">تاريخ البداية يجب أن يسبق تاريخ النهاية.</div>';$id("supplierReportRows").innerHTML="";return}
- const invoices=state.purchaseInvoices.filter(x=>reportInRange(x.date||x.createdAt,from,to)&&(supplierFilter==="all"||x.supplierId===supplierFilter)&&(currencyFilter==="all"||(x.currency||"SYP")===currencyFilter));
- const returns=state.supplierReturns.filter(r=>r.status!=="void"&&reportInRange(r.date||r.createdAt,from,to)&&(supplierFilter==="all"||r.supplierId===supplierFilter)&&(currencyFilter==="all"||(r.currency||"SYP")===currencyFilter));
+ const invoices=state.purchaseInvoices.filter(x=>reportInRange(x.date||x.createdAt,from,to)&&(supplierFilter==="all"||x.supplierId===supplierFilter)&&matchesSupplier(x.supplierId)&&(currencyFilter==="all"||(x.currency||"SYP")===currencyFilter));
+ const returns=state.supplierReturns.filter(r=>r.status!=="void"&&reportInRange(r.date||r.createdAt,from,to)&&(supplierFilter==="all"||r.supplierId===supplierFilter)&&matchesSupplier(r.supplierId)&&(currencyFilter==="all"||(r.currency||"SYP")===currencyFilter));
  const currencies=new Set(),totals={},supplierRows={};
  const getTotal=c=>totals[c]||(totals[c]={purchases:0,returns:0,paid:0,returnCredits:0,due:0,credit:0});
  const getSupplier=(id,name,c)=>{const key=id+"|"+c;return supplierRows[key]||(supplierRows[key]={supplierId:id,name:name||"مورد",currency:c,purchases:0,returns:0,paid:0,returnCredits:0,due:0,credit:0})};
@@ -77,7 +83,7 @@ function renderSupplierReport(){
   currencies.add(c);t.returns+=amount;t.returnCredits+=amount;row.returns+=amount;row.returnCredits+=amount;
  });
  // Cash payments are period transactions, even when they settle an older invoice.
- state.purchaseInvoices.filter(x=>(supplierFilter==="all"||x.supplierId===supplierFilter)&&(currencyFilter==="all"||(x.currency||"SYP")===currencyFilter)).forEach(x=>{
+ state.purchaseInvoices.filter(x=>(supplierFilter==="all"||x.supplierId===supplierFilter)&&matchesSupplier(x.supplierId)&&(currencyFilter==="all"||(x.currency||"SYP")===currencyFilter)).forEach(x=>{
   const c=x.currency||"SYP",s=state.suppliers.find(v=>v.id===x.supplierId);
   const cashPayments=(Array.isArray(x.payments)?x.payments:[]).filter(p=>p.kind!=="return");
   let recordedCash=0;
