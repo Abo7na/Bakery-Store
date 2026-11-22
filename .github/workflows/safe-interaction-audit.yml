@@ -61,8 +61,14 @@ jobs:
                 if (!active) throw new Error(label + ': tab did not become active: ' + name);
                 const panel = page.locator(panelSelector + '[' + attr.replace('tab','panel') + '="' + name + '"]');
                 if (await panel.count()) {
-                  const hidden = await panel.evaluate(el => el.classList.contains('is-hidden') || el.classList.contains('is-tab-hidden') || el.hidden);
-                  if (hidden) throw new Error(label + ': matching panel stayed hidden: ' + name);
+                  // Some tabs intentionally share a panel key (e.g. materials edit + list).
+                  // Pass when at least one matching panel is visible; avoid strict-mode errors.
+                  const hasVisiblePanel = await panel.evaluateAll(els => els.some(el => {
+                    const style = getComputedStyle(el);
+                    return !el.hidden && style.display !== 'none' && style.visibility !== 'hidden' &&
+                      !el.classList.contains('is-hidden') && !el.classList.contains('is-tab-hidden');
+                  }));
+                  if (!hasVisiblePanel) throw new Error(label + ': no visible matching panel: ' + name);
                 }
                 results.push({ test: label + ' tab ' + name, status: 'passed' });
               }
