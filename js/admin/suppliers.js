@@ -23,28 +23,46 @@ function renderSupplierReport(){
  const from=$id("reportDateFrom").value,to=$id("reportDateTo").value;
  if(from&&to&&from>to){$id("supplierReportTotals").innerHTML='<div class="empty-suppliers">تاريخ البداية يجب أن يسبق تاريخ النهاية.</div>';$id("supplierReportRows").innerHTML="";return}
  const invoices=state.purchaseInvoices.filter(x=>reportInRange(x.date||x.createdAt,from,to));
- const invoiceIds=new Set(invoices.map(x=>x.id));
  const returns=state.supplierReturns.filter(r=>reportInRange(r.date||r.createdAt,from,to));
- const currencies=new Set();
- const totals={};
- const supplierRows={};
- const getTotal=c=>totals[c]||(totals[c]={purchases:0,returns:0,paid:0,due:0});
- const getSupplier=(id,name,c)=>{const key=id+"|"+c;return supplierRows[key]||(supplierRows[key]={name:name||"مورد",currency:c,purchases:0,returns:0,paid:0,due:0})};
+ const currencies=new Set(),totals={},supplierRows={};
+ const getTotal=c=>totals[c]||(totals[c]={purchases:0,returns:0,paid:0,due:0,credit:0});
+ const getSupplier=(id,name,c)=>{const key=id+"|"+c;return supplierRows[key]||(supplierRows[key]={name:name||"مورد",currency:c,purchases:0,returns:0,paid:0,due:0,credit:0})};
+ // Purchases and current balances belong to invoices dated within the selected period.
  invoices.forEach(x=>{
   const c=x.currency||"SYP",s=state.suppliers.find(v=>v.id===x.supplierId),t=getTotal(c),row=getSupplier(x.supplierId,s?.name,c);
-  currencies.add(c);t.purchases+=Number(x.total)||0;t.due+=Number(x.due)||0;
-  row.purchases+=Number(x.total)||0;row.due+=Number(x.due)||0;
-  const cashPayments=(Array.isArray(x.payments)?x.payments:[]).filter(p=>p.kind!=="return");let recordedCash=0;cashPayments.forEach(p=>{const amount=Number(p.amount)||0;recordedCash+=amount;if(reportInRange(p.date||x.date||x.createdAt,from,to)){t.paid+=amount;row.paid+=amount}});const missingCash=Math.max(0,Number(x.paid||0)-recordedCash);if(missingCash>0&&reportInRange(x.date||x.createdAt,from,to)){t.paid+=missingCash;row.paid+=missingCash}
+  const net=Math.max(0,(Number(x.total)||0)-(Number(x.returnedTotal)||0));
+  const paid=Math.max(0,Number(x.paid)||0),due=Math.max(0,net-paid),credit=Math.max(0,paid-net);
+  currencies.add(c);t.purchases+=Number(x.total)||0;t.due+=due;t.credit+=credit;
+  row.purchases+=Number(x.total)||0;row.due+=due;row.credit+=credit;
  });
+ // Returns are counted by the date they were actually recorded.
  returns.forEach(r=>{
   const c=r.currency||"SYP",s=state.suppliers.find(v=>v.id===r.supplierId),t=getTotal(c),row=getSupplier(r.supplierId,s?.name,c),amount=Number(r.amount)||0;
   currencies.add(c);t.returns+=amount;row.returns+=amount;
  });
- const countHtml='<div class="report-count-card"><span>فواتير الشراء</span><b>'+invoices.length+'</b></div><div class="report-count-card"><span>المرتجعات</span><b>'+returns.length+'</b></div><div class="report-count-card"><span>الموردون</span><b>'+new Set([...invoices.map(x=>x.supplierId),...returns.map(x=>x.supplierId)]).size+'</b></div>';
+ // Cash payments are period transactions, even when they settle an older invoice.
+ state.purchaseInvoices.forEach(x=>{
+  const c=x.currency||"SYP",s=state.suppliers.find(v=>v.id===x.supplierId);
+  const cashPayments=(Array.isArray(x.payments)?x.payments:[]).filter(p=>p.kind!=="return");
+  let recordedCash=0;
+  cashPayments.forEach(p=>{
+   const amount=Number(p.amount)||0;recordedCash+=amount;
+   if(reportInRange(p.date||x.date||x.createdAt,from,to)){
+    const t=getTotal(c),row=getSupplier(x.supplierId,s?.name,c);currencies.add(c);t.paid+=amount;row.paid+=amount;
+   }
+  });
+  // Legacy invoices may have a paid amount without a corresponding payment-history entry.
+  const missingCash=Math.max(0,(Number(x.paid)||0)-recordedCash);
+  if(missingCash>0&&reportInRange(x.date||x.createdAt,from,to)){
+   const t=getTotal(c),row=getSupplier(x.supplierId,s?.name,c);currencies.add(c);t.paid+=missingCash;row.paid+=missingCash;
+  }
+ });
+ const participating=new Set(Object.keys(supplierRows).map(k=>k.slice(0,k.lastIndexOf("|"))));
+ const countHtml='<div class="report-count-card"><span>فواتير الشراء</span><b>'+invoices.length+'</b></div><div class="report-count-card"><span>المرتجعات</span><b>'+returns.length+'</b></div><div class="report-count-card"><span>الموردون</span><b>'+participating.size+'</b></div>';
  $id("reportCounts").innerHTML=countHtml;
- $id("supplierReportTotals").innerHTML=currencies.size?[...currencies].sort().map(c=>{const t=totals[c],net=t.purchases-t.returns;return '<article class="report-currency-card"><h3>'+cur(c)+'</h3><div class="report-metrics"><div><small>إجمالي المشتريات</small><b>'+fmt(t.purchases)+'</b></div><div><small>قيمة المرتجعات</small><b class="balance-due">− '+fmt(t.returns)+'</b></div><div><small>صافي المشتريات</small><b>'+fmt(net)+'</b></div><div><small>الدفعات خلال الفترة</small><b class="balance-paid">'+fmt(t.paid)+'</b></div><div><small>المتبقي الحالي لفواتير الفترة</small><b class="balance-due">'+fmt(t.due)+'</b></div></div></article>'}).join(""):'<div class="empty-suppliers">لا توجد مشتريات أو مرتجعات ضمن الفترة المحددة.</div>';
+ $id("supplierReportTotals").innerHTML=currencies.size?[...currencies].sort().map(c=>{const t=totals[c],net=t.purchases-t.returns;return '<article class="report-currency-card"><h3>'+cur(c)+'</h3><div class="report-metrics"><div><small>إجمالي المشتريات</small><b>'+fmt(t.purchases)+'</b></div><div><small>قيمة المرتجعات</small><b class="balance-due">− '+fmt(t.returns)+'</b></div><div><small>صافي المشتريات</small><b>'+fmt(net)+'</b></div><div><small>الدفعات خلال الفترة</small><b class="balance-paid">'+fmt(t.paid)+'</b></div><div><small>المتبقي الحالي لفواتير الفترة</small><b class="balance-due">'+fmt(t.due)+'</b></div><div><small>الرصيد الدائن لنا على فواتير الفترة</small><b class="balance-paid">'+fmt(t.credit)+'</b></div></div></article>'}).join(""):'<div class="empty-suppliers">لا توجد حركات مالية ضمن الفترة المحددة.</div>';
  const rows=Object.values(supplierRows).sort((a,b)=>a.name.localeCompare(b.name,"ar"));
- $id("supplierReportRows").innerHTML=rows.length?'<div class="report-table-scroll"><table class="supplier-report-table"><thead><tr><th>المورد</th><th>العملة</th><th>المشتريات</th><th>المرتجعات</th><th>الدفعات</th><th>المتبقي الحالي</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+cur(r.currency)+'</td><td>'+fmt(r.purchases)+'</td><td>'+fmt(r.returns)+'</td><td>'+fmt(r.paid)+'</td><td class="'+(r.due>0?"balance-due":"balance-paid")+'">'+fmt(r.due)+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty-suppliers">لا توجد بيانات لعرضها.</div>';
+ $id("supplierReportRows").innerHTML=rows.length?'<div class="report-table-scroll"><table class="supplier-report-table"><thead><tr><th>المورد</th><th>العملة</th><th>المشتريات</th><th>المرتجعات</th><th>الدفعات خلال الفترة</th><th>المتبقي الحالي</th><th>رصيد دائن لنا</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+cur(r.currency)+'</td><td>'+fmt(r.purchases)+'</td><td>'+fmt(r.returns)+'</td><td>'+fmt(r.paid)+'</td><td class="'+(r.due>0?"balance-due":"balance-paid")+'">'+fmt(r.due)+'</td><td class="balance-paid">'+fmt(r.credit)+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty-suppliers">لا توجد بيانات لعرضها.</div>';
 }
 function setReportMonth(){const now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1);$id("reportDateFrom").value=first.getFullYear()+"-"+String(first.getMonth()+1).padStart(2,"0")+"-"+String(first.getDate()).padStart(2,"0");$id("reportDateTo").value=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");renderSupplierReport()}
 function renderStatement(id){
