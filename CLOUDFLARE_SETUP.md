@@ -1,27 +1,24 @@
-# Cloudflare setup for Bakery Store
+# حالة ربط Cloudflare وقاعدة البيانات
 
-## Pages Functions bindings
-In Cloudflare Dashboard open Workers & Pages -> Bakery Store -> Settings -> Functions -> Bindings.
+هذه الوثيقة تصف **متطلبات مستقبلية** وليست خطوات تشغيل مكتملة. النسخة الحالية من التطبيق تعمل بملفات ثابتة وتخزن بياناتها في `localStorage`.
 
-Add:
-- D1 database binding: variable name `DB`, select the database you create for this shop.
-- R2 bucket binding: variable name `IMAGES`, select the bucket you create for product photos.
+## ما هو غير جاهز حالياً
 
-Save and redeploy the Pages project after adding bindings.
+- لا يوجد مجلد `functions/` أو مسار API فعّال في المستودع.
+- لا يوجد كود يقرأ أو يكتب بيانات المتجر إلى D1.
+- لا يوجد مسار فعّال لرفع الصور إلى R2.
+- لا توجد مصادقة مدير أو جلسات خادمية.
+- `migrations/0001_initial.sql` لا يحتوي بعد على جداول الموردين والمشتريات والدفعات والمرتجعات والمخزون وحركاته وفواتير البيع.
 
-## Create the D1 database
-Create a D1 database named `bakery-store-db`. Apply `migrations/0001_initial.sql` once using the D1 Console, or from Wrangler:
-`npx wrangler d1 execute bakery-store-db --remote --file=migrations/0001_initial.sql`
+لذلك فإن إنشاء D1 أو R2 أو إضافة أسرار Cloudflare وحدها **لن يحوّل التطبيق إلى نظام متعدد الأجهزة**، ولا ينبغي اعتبار هذه الخطوات كافية لاستقبال طلبات حقيقية.
 
-## Create the R2 bucket
-Create a private R2 bucket named `bakery-store-images`. Keep public access disabled: images are delivered through the Pages Function route `/api/images/<key>`, which reads from the private R2 binding and sets cache headers. This lets the site use its Pages hostname without requiring a separate custom domain at first.
+## ما يلزم قبل الإنتاج
 
-## Set secrets
-In Pages -> Settings -> Variables and Secrets, add these as encrypted secrets:
-- `ADMIN_PASSWORD`: choose a long, unique admin password.
-- `SESSION_SECRET`: generate a random secret of at least 32 characters.
+1. تصميم مخطط بيانات كامل يغطي المنتجات والمخزون وحركات المواد والموردين وفواتير الشراء والدفعات والمرتجعات والتسويات والطلبات والمبيعات والإعدادات.
+2. بناء Cloudflare Pages Functions أو API موثوق لكل عمليات القراءة والكتابة، مع معاملات قاعدة بيانات تمنع تضارب المخزون والدفعات.
+3. إضافة مصادقة إدارية آمنة باستخدام `ADMIN_PASSWORD` و`SESSION_SECRET` كأسرار خادمية، مع جلسات آمنة وصلاحيات.
+4. بناء مسارات رفع الصور إلى R2 والتحقق من نوع الملفات وحجمها.
+5. ترحيل البيانات المحلية بعد اختبار نسخة احتياطية ومطابقة أرصدة المخزون والحسابات.
+6. اختبار الطلبات المتزامنة، والدفعات الجزئية، والمرتجعات، وفصل العملات، وحركات المخزون قبل النشر.
 
-Do not put either secret in GitHub or in frontend JavaScript.
-
-## Notes
-The API endpoints are in `functions/api/[[path]].js`. Pages Functions need a redeployment after bindings or secrets change.
+**لا تضع كلمات المرور أو مفاتيح الجلسات في ملفات الواجهة أو المستودع.**
