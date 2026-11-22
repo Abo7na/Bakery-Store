@@ -113,6 +113,7 @@ jobs:
               await page.locator('#inventorySearch').fill('اختبار غير موجود');
               await page.locator('#materialStatusFilter').selectOption('low');
               await page.locator('#resetMaterialsFilters').click();
+              await page.locator('[data-inventory-tab="movements"]').click();
               await page.locator('#movementFilter').selectOption('add');
               await page.locator('#applyMovementFilters').click();
               await page.locator('#resetMovementFilters').click();
