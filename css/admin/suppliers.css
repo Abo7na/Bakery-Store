@@ -131,3 +131,12 @@
 .return-row{border-inline-start:3px solid #8aaf8d}
 .statement-metrics{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
 @media(max-width:520px){.statement-metrics{grid-template-columns:1fr}}
+
+/* Supplier, invoice, debt and return search filters */
+.supplier-filters{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin:0 0 14px;padding:11px;border:1px solid #eee3d7;border-radius:12px;background:#fcf8f2}
+.supplier-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.supplier-filters input,.supplier-filters select{width:100%;min-width:0;min-height:42px;padding:8px 11px;border:1px solid #e5ded3;border-radius:9px;background:#fffdfb;color:#51473d;font:inherit;font-size:13px}
+.supplier-filters label{display:grid;gap:5px;color:#796b5d;font-size:11px}
+.supplier-filters label input{font-size:12px}
+.supplier-filters input:focus,.supplier-filters select:focus{outline:none;border-color:#b98b69;box-shadow:0 0 0 3px #b98b691a}
+@media(max-width:520px){.supplier-filter-grid{grid-template-columns:1fr 1fr}.supplier-filters{padding:9px;gap:8px}.supplier-filters input,.supplier-filters select{min-height:40px;font-size:12px}.supplier-filters>input[type="search"]{grid-column:1/-1}}
