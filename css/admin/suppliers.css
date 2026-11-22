@@ -448,3 +448,35 @@
     margin:0!important;
   }
 }
+
+
+/* Supplier credits owed back to the business */
+.supplier-credit-row{align-items:flex-start}
+.supplier-credit-row>div{min-width:0}
+.supplier-credit-row>div:last-child{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.supplier-credit-row .balance-paid{color:#39734a}
+@media(max-width:760px){
+  #creditsList>.supplier-credit-row{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:12px!important;
+  }
+  #creditsList>.supplier-credit-row>div{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    width:100%!important;
+    min-width:0!important;
+    gap:6px!important;
+  }
+  #creditsList>.supplier-credit-row>div small,
+  #creditsList>.supplier-credit-row>div b{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere;
+    line-height:1.7;
+  }
+}
