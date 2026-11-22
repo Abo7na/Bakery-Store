@@ -33,7 +33,7 @@ function renderSupplierReport(){
  invoices.forEach(x=>{
   const c=x.currency||"SYP",s=state.suppliers.find(v=>v.id===x.supplierId),t=getTotal(c),row=getSupplier(x.supplierId,s?.name,c);
   const net=Math.max(0,(Number(x.total)||0)-(Number(x.returnedTotal)||0));
-  const paid=Math.max(0,Number(x.paid)||0),due=Math.max(0,net-paid),credit=invoiceCreditAvailable(x);
+  const paid=Math.max(0,Number(x.paid)||0),due=Math.max(0,Number(x.due)||0),credit=invoiceCreditAvailable(x);
   currencies.add(c);t.purchases+=Number(x.total)||0;t.due+=due;t.credit+=credit;
   row.purchases+=Number(x.total)||0;row.due+=due;row.credit+=credit;
  });
